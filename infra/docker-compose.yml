@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: timecrax_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: timecrax
+      POSTGRES_USER: timecrax
+      POSTGRES_PASSWORD: timecrax_pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - timecrax_pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: timecrax_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: juliocesarlfaria@outlook.com
+      PGADMIN_DEFAULT_PASSWORD: admin_pwd
+    ports:
+      - "5050:80"
+    volumes:
+      - timecrax_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
+  api:
+    build:
+      context: ../src/Timecrax.Api
+      dockerfile: Dockerfile
+    container_name: timecrax_api
+    restart: unless-stopped
+    ports:
+      - "5139:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    volumes:
+      - D:/timecrax-storage:/data/storage
+    depends_on:
+      - db
+
+volumes:
+  timecrax_pgdata:
+  timecrax_pgadmin_data:
