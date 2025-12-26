@@ -96,7 +96,7 @@ public class ThemeAssetsController : ControllerBase
         using (img)
         await using (var fs = System.IO.File.Create(fullPath))
         {
-            await img.SaveAsWebpAsync(fs, new WebpEncoder { Quality = 85 }, ct);
+            await img.SaveAsWebpAsync(fs, new WebpEncoder { Quality = 75 }, ct);
         }
 
         var url = $"{publicBase}/themes/{themeId}/{relative.Replace('\\', '/')}";
