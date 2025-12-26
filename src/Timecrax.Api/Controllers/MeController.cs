@@ -40,6 +40,25 @@ public class MeController : ControllerBase
         if (user is null)
             return Unauthorized(new { error = "user not found." });
 
+        // Busca todos os achievements e verifica quais o usuário tem
+        var allAchievements = await _db.Achievements.AsNoTracking().ToListAsync();
+        var userAchievements = await _db.UserAchievements
+            .AsNoTracking()
+            .Where(ua => ua.UserId == userId)
+            .ToListAsync();
+
+        var achievementDtos = allAchievements.Select(a =>
+        {
+            var userAch = userAchievements.FirstOrDefault(ua => ua.AchievementId == a.Id);
+            return new AchievementDto(
+                a.Id,
+                a.Name,
+                a.Image,
+                a.Description,
+                userAch?.AchievedAt
+            );
+        }).ToList();
+
         return Ok(new MeResponse(
             user.Id,
             user.Role,
@@ -50,7 +69,8 @@ public class MeController : ControllerBase
             user.Picture,
             user.Score,
             user.CreatedAt,
-            user.UpdatedAt
+            user.UpdatedAt,
+            achievementDtos
         ));
     }
 
