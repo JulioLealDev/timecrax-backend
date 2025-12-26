@@ -180,6 +180,65 @@ public class ThemeAssetsController : ControllerBase
     }
     
     /// <summary>
+    /// Deleta todos os assets (imagens) de uma carta específica.
+    /// Remove registros do banco e arquivos físicos do storage.
+    /// </summary>
+    [HttpDelete("sessions/{sessionId:guid}/cards/{cardIndex:int}")]
+    public async Task<IActionResult> DeleteCardAssets(
+        [FromRoute] Guid sessionId,
+        [FromRoute] int cardIndex,
+        CancellationToken ct)
+    {
+        var userId = User.GetUserId();
+
+        var session = await _db.ThemeUploadSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && !s.IsClosed, ct);
+
+        if (session is null)
+            return NotFound("Sessão inválida ou encerrada.");
+
+        var root = (_config["Storage:RootPath"] ?? "").Trim();
+        var publicBase = (_config["Storage:PublicBasePath"] ?? "").TrimEnd('/');
+
+        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(publicBase))
+            return StatusCode(500, "Storage não configurado.");
+
+        // Padrões de slotKey para a carta (8 imagens no total):
+        // - cards[i].imageUrl (1)
+        // - cards[i].imageQuiz.options[0-3].imageUrl (4)
+        // - cards[i].correlationQuiz.items[0-2].imageUrl (3)
+        var slotKeyPatterns = new List<string>
+        {
+            $"cards[{cardIndex}].imageUrl"
+        };
+
+        for (int k = 0; k < 4; k++)
+            slotKeyPatterns.Add($"cards[{cardIndex}].imageQuiz.options[{k}].imageUrl");
+
+        for (int k = 0; k < 3; k++)
+            slotKeyPatterns.Add($"cards[{cardIndex}].correlationQuiz.items[{k}].imageUrl");
+
+        // Busca todos os assets relacionados à carta
+        var assets = await _db.ThemeUploadAssets
+            .Where(a => a.SessionId == sessionId && slotKeyPatterns.Contains(a.SlotKey))
+            .ToListAsync(ct);
+
+        // Deleta arquivos físicos
+        foreach (var asset in assets)
+        {
+            TryDeleteOldAssetFile(asset.Url, publicBase, root);
+        }
+
+        // Remove registros do banco
+        _db.ThemeUploadAssets.RemoveRange(assets);
+
+        session.LastTouchedAt = DateTimeOffset.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        return Ok(new { deletedCount = assets.Count, message = $"Carta {cardIndex} e seus {assets.Count} assets deletados com sucesso." });
+    }
+
+    /// <summary>
     /// Cria uma sessão de upload de assets (imagens) para criação de um Theme.
     /// O front chama isso ao entrar em /create-theme.
     /// Garante no máximo UMA sessão aberta por usuário.
