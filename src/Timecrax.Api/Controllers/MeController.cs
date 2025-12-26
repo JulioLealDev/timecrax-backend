@@ -7,6 +7,7 @@ using Timecrax.Api.Extensions;
 using Timecrax.Api.Services;
 using SixLabors.ImageSharp;
 using System.Diagnostics;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Timecrax.Api.Controllers;
 
@@ -140,57 +141,49 @@ public class MeController : ControllerBase
     [HttpPost("picture")]
     [Authorize]
     [RequestSizeLimit(5 * 1024 * 1024)] // 5MB
-    public async Task<IActionResult> UploadPicture(IFormFile file, CancellationToken ct)
+    public async Task<IActionResult> UploadPicture([FromForm] IFormFile file, CancellationToken ct)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { error = "Arquivo inválido." });
 
-        if (!file.ContentType.StartsWith("image/"))
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             return BadRequest(new { error = "Apenas imagens são permitidas." });
 
-        var userId = User.GetUserId(); // seu extension method
+        var userId = User.GetUserId();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null) return Unauthorized();
 
         var storageRoot = _config["Storage:RootPath"];
-        var publicBase = _config["Storage:PublicBasePath"] ?? "/media";
+        var publicBase = (_config["Storage:PublicBasePath"] ?? "/media").TrimEnd('/');
 
         if (string.IsNullOrWhiteSpace(storageRoot))
             return StatusCode(500, new { error = "Storage RootPath não configurado." });
 
-        // Pasta física FORA do projeto: <RootPath>/profile
         var uploadsDir = Path.Combine(storageRoot, "profile");
         Directory.CreateDirectory(uploadsDir);
 
-        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-        if (!allowedExts.Contains(ext))
-            return BadRequest(new { error = "Formato de imagem não suportado." });
-
-        // Valida dimensões mínimas
-        using var img = Image.Load(file.OpenReadStream());
-        if (img.Width < 128 || img.Height < 128)
-            return BadRequest(new { error = "Imagem muito pequena." });
-
-        // Nome do arquivo (pode manter o padrão fixo por usuário)
-        var fileName = $"user_{user.Id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}{ext}";
+        var fileName = $"user_{user.Id}.webp";
         var filePath = Path.Combine(uploadsDir, fileName);
 
-        // Remove imagens antigas (qualquer extensão)
-        foreach (var e in new[] { ".jpg", ".jpeg", ".png", ".webp" })
+        SixLabors.ImageSharp.Image img;
+        try
         {
-            var old = Path.Combine(uploadsDir, $"user_{user.Id}{e}");
-            if (System.IO.File.Exists(old))
-                System.IO.File.Delete(old);
+            img = Image.Load(file.OpenReadStream());
+        }
+        catch
+        {
+            return BadRequest(new { error = "Imagem inválida ou formato não suportado." });
         }
 
-        // Salva arquivo
-        await using (var stream = System.IO.File.Create(filePath))
+        using (img)
         {
-            await file.CopyToAsync(stream, ct);
+            if (img.Width < 128 || img.Height < 128)
+                return BadRequest(new { error = "Imagem muito pequena." });
+
+            await using var fs = System.IO.File.Create(filePath);
+            img.SaveAsWebp(fs, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 85 });
         }
 
-        // URL pública (servida pelo UseStaticFiles com RequestPath = /media)
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
         var pictureUrl = $"{baseUrl}{publicBase}/profile/{fileName}";
 
@@ -200,4 +193,5 @@ public class MeController : ControllerBase
 
         return Ok(new { picture = pictureUrl });
     }
+
 }
