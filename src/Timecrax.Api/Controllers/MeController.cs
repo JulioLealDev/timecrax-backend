@@ -41,7 +41,7 @@ public class MeController : ControllerBase
             return Unauthorized(new { error = "user not found." });
 
         // Busca todos os achievements e verifica quais o usuário tem
-        var allAchievements = await _db.Achievements.AsNoTracking().ToListAsync();
+        var allAchievements = await _db.Achievements.AsNoTracking().OrderBy(a => a.Image).ToListAsync();
         var userAchievements = await _db.UserAchievements
             .AsNoTracking()
             .Where(ua => ua.UserId == userId)
