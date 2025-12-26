@@ -10,5 +10,14 @@ public sealed record MeResponse(
     string? Picture,
     int Score,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    List<AchievementDto> Achievements
+);
+
+public sealed record AchievementDto(
+    Guid Id,
+    string Name,
+    string Image,
+    string Description,
+    DateTimeOffset? UnlockedAt
 );
