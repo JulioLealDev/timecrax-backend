@@ -47,13 +47,13 @@ public sealed class StorageImageService(IConfiguration config)
         await using var fs = File.Create(physicalPath);
 
         // você pode escolher sempre salvar em WEBP/JPG para padronizar.
-        // aqui vou salvar “no formato do mime”
+        // aqui vou salvar "no formato do mime"
         IImageEncoder encoder = mime.ToLowerInvariant() switch
         {
-            "image/jpeg" => new JpegEncoder { Quality = 85 },
+            "image/jpeg" => new JpegEncoder { Quality = 75 },
             "image/png"  => new PngEncoder(),
-            "image/webp" => new WebpEncoder { Quality = 85 },
-            _ => new WebpEncoder { Quality = 85 }
+            "image/webp" => new WebpEncoder { Quality = 75 },
+            _ => new WebpEncoder { Quality = 75 }
         };
 
         await img.SaveAsync(fs, encoder, ct);

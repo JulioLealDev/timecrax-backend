@@ -181,7 +181,7 @@ public class MeController : ControllerBase
                 return BadRequest(new { error = "Imagem muito pequena." });
 
             await using var fs = System.IO.File.Create(filePath);
-            img.SaveAsWebp(fs, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 85 });
+            img.SaveAsWebp(fs, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 75 });
         }
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
