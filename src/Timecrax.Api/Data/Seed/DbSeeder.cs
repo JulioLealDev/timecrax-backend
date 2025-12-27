@@ -41,7 +41,7 @@ public static class DbSeeder
                 Id = Guid.NewGuid(),
                 Name = "Bacharel",
                 Image = "http://localhost:5139/media/assets/medals/medal_02.png",
-                MinScore = 0,
+                MinScore = 1000,
                 CreatedAt = now
             },
             new Medal
@@ -49,7 +49,7 @@ public static class DbSeeder
                 Id = Guid.NewGuid(),
                 Name = "Mestre",
                 Image = "http://localhost:5139/media/assets/medals/medal_03.png",
-                MinScore = 0,
+                MinScore = 2000,
                 CreatedAt = now
             },
             new Medal
@@ -57,7 +57,7 @@ public static class DbSeeder
                 Id = Guid.NewGuid(),
                 Name = "Doutor",
                 Image = "http://localhost:5139/media/assets/medals/medal_04.png",
-                MinScore = 0,
+                MinScore = 3000,
                 CreatedAt = now
             },
         };
