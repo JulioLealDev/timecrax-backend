@@ -244,4 +244,24 @@ public class MeController : ControllerBase
         return Ok(new { picture = pictureUrl });
     }
 
+    // GET /me/ranking
+    [HttpGet("ranking")]
+    public async Task<IActionResult> GetRanking(CancellationToken ct)
+    {
+        var users = await _db.Users
+            .AsNoTracking()
+            .OrderByDescending(u => u.Score)
+            .Select(u => new
+            {
+                id = u.Id,
+                name = !string.IsNullOrWhiteSpace(u.FirstName) && !string.IsNullOrWhiteSpace(u.LastName)
+                    ? $"{u.FirstName} {u.LastName}".Trim()
+                    : u.FirstName ?? u.Email,
+                score = u.Score
+            })
+            .ToListAsync(ct);
+
+        return Ok(users);
+    }
+
 }

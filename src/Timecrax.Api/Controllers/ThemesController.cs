@@ -270,10 +270,15 @@ public class ThemesController : ControllerBase
         [FromServices] StorageImageService storage,
         CancellationToken ct)
     {
-        var userId = User.GetUserId();
+        try
+        {
+            var userId = User.GetUserId();
 
-        var errors = ThemeValidator.ValidateForUpdate(dto);
-        if (errors.Count > 0) return BadRequest(new { errors });
+            Console.WriteLine($"[DEBUG] Update theme {id} - User: {userId}");
+            Console.WriteLine($"[DEBUG] UploadSessionId: {dto.UploadSessionId}");
+
+            var errors = ThemeValidator.ValidateForUpdate(dto);
+            if (errors.Count > 0) return BadRequest(new { errors });
 
         var theme = await db.Themes
             .Include(t => t.EventCards).ThenInclude(c => c.ImageQuiz)
@@ -323,9 +328,12 @@ public class ThemesController : ControllerBase
 
         if (uploadSessionId.HasValue)
         {
-            // Proteção importante: não aceitar “sessão == tema”
+            Console.WriteLine($"[DEBUG] Processing upload session {uploadSessionId.Value}");
+
+            // Proteção importante: não aceitar "sessão == tema"
             if (uploadSessionId.Value == id)
             {
+                Console.WriteLine($"[ERROR] Session ID equals theme ID");
                 return BadRequest(new
                 {
                     errors = new Dictionary<string, string>
@@ -343,6 +351,7 @@ public class ThemesController : ControllerBase
 
             if (uploadSession is null)
             {
+                Console.WriteLine($"[ERROR] Session not found or closed");
                 return BadRequest(new
                 {
                     errors = new Dictionary<string, string>
@@ -352,10 +361,14 @@ public class ThemesController : ControllerBase
                 });
             }
 
-            // puxa assets da sessão para validar “slotKey -> url”
+            Console.WriteLine($"[DEBUG] Session found - ThemeId: {uploadSession.ThemeId}");
+
+            // puxa assets da sessão para validar "slotKey -> url"
             sessionAssets = await db.ThemeUploadAssets
                 .Where(a => a.SessionId == uploadSessionId.Value)
                 .ToDictionaryAsync(a => a.SlotKey, a => a.Url, ct);
+
+            Console.WriteLine($"[DEBUG] Found {sessionAssets.Count} assets in session");
         }
 
         // 3) valida URLs (podem ser do tema OU da sessão)
@@ -368,8 +381,11 @@ public class ThemesController : ControllerBase
         {
             try
             {
-                // promove somente os slots que realmente vieram da sessão
-                if (slotsFromSession.Count > 0)
+                // Se sessão tem ThemeId == tema atual, os assets já estão no lugar certo (não precisa promover)
+                // Apenas promove se sessão for staging (ThemeId == null)
+                bool needsPromotion = uploadSession!.ThemeId == null || uploadSession.ThemeId != id;
+
+                if (needsPromotion && slotsFromSession.Count > 0)
                     dto = RewriteDtoUrlsPromoted(dto, uploadSessionId.Value, id, publicBase, root, slotsFromSession);
 
                 // recomendação: sempre fechar sessão ao concluir o PUT (mesmo se slotsFromSession = 0)
@@ -392,18 +408,63 @@ public class ThemesController : ControllerBase
             }
         }
 
-        // 5) persistência
-        theme.Name = dto.Name.Trim();
-        theme.Image = dto.Image!.Trim();
-        theme.UpdatedAt = DateTimeOffset.UtcNow;
+            // 5) persistência
+            Console.WriteLine($"[DEBUG] Saving theme changes...");
+            theme.Name = dto.Name.Trim();
+            theme.Image = dto.Image!.Trim();
+            theme.UpdatedAt = DateTimeOffset.UtcNow;
 
-        db.EventCards.RemoveRange(theme.EventCards);
-        var newCards = ThemeMapper.ToCards(dto.Cards, theme.Id);
-        theme.EventCards = newCards;
-        theme.ReadyToPlay = newCards.Count >= 12;
+            // Remove cartas antigas usando query SQL direta (mais seguro para concorrência)
+            Console.WriteLine($"[DEBUG] Removing {theme.EventCards.Count} old cards...");
+            var oldCardIds = theme.EventCards.Select(c => c.Id).ToList();
 
-        await db.SaveChangesAsync(ct);
-        return NoContent();
+            if (oldCardIds.Any())
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync(
+                    $"DELETE FROM app.event_cards WHERE \"ThemeId\" = {id}", ct);
+            }
+
+            // Limpa o ChangeTracker para evitar conflitos
+            db.ChangeTracker.Clear();
+
+            // Recarrega o tema
+            theme = await db.Themes.FirstOrDefaultAsync(t => t.Id == id, ct);
+            if (theme is null) return NotFound();
+
+            Console.WriteLine($"[DEBUG] Creating {dto.Cards.Count} new cards...");
+            var newCards = ThemeMapper.ToCards(dto.Cards, theme.Id);
+
+            // Adiciona novas cartas
+            db.EventCards.AddRange(newCards);
+
+            theme.Name = dto.Name.Trim();
+            theme.Resume = dto.Resume?.Trim();
+
+            // Normaliza URL da imagem para garantir que tenha baseUrl completo
+            var themeImageUrl = dto.Image!.Trim();
+            if (!themeImageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !themeImageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5139").TrimEnd('/');
+                themeImageUrl = themeImageUrl.StartsWith("/")
+                    ? $"{baseUrl}{themeImageUrl}"
+                    : $"{baseUrl}/{themeImageUrl}";
+            }
+            theme.Image = themeImageUrl;
+
+            theme.UpdatedAt = DateTimeOffset.UtcNow;
+            theme.ReadyToPlay = newCards.Count >= 12;
+
+            await db.SaveChangesAsync(ct);
+            Console.WriteLine($"[DEBUG] Theme updated successfully");
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Update theme failed: {ex.GetType().Name}: {ex.Message}");
+            Console.WriteLine($"[ERROR] StackTrace: {ex.StackTrace}");
+            return StatusCode(500, new { error = "Failed to update theme", details = ex.Message, type = ex.GetType().Name });
+        }
     }
 
     private static (Dictionary<string, string> errors, HashSet<string> slotsFromSession)
@@ -666,7 +727,38 @@ public class ThemesController : ControllerBase
                 id = t.Id,
                 name = t.Name,
                 image = t.Image,
-                readyToPlay = t.ReadyToPlay
+                readyToPlay = t.ReadyToPlay,
+                createdAt = t.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        return Ok(themes);
+    }
+
+    // GET /themes/storage
+    [HttpGet("storage")]
+    [Authorize]
+    public async Task<IActionResult> GetThemesStorage(
+        [FromServices] AppDbContext db,
+        CancellationToken ct)
+    {
+        var themes = await db.Themes
+            .AsNoTracking()
+            .Include(t => t.CreatorUser)
+            .Where(t => t.ReadyToPlay == true)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => new
+            {
+                id = t.Id,
+                name = t.Name,
+                image = t.Image,
+                readyToPlay = t.ReadyToPlay,
+                creatorName = t.CreatorUser != null
+                    ? (!string.IsNullOrWhiteSpace(t.CreatorUser.FirstName) && !string.IsNullOrWhiteSpace(t.CreatorUser.LastName)
+                        ? $"{t.CreatorUser.FirstName} {t.CreatorUser.LastName}".Trim()
+                        : t.CreatorUser.FirstName ?? t.CreatorUser.Email)
+                    : "Unknown",
+                createdAt = t.CreatedAt
             })
             .ToListAsync(ct);
 

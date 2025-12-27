@@ -43,6 +43,11 @@ public static class ThemeValidator
 
         if (string.IsNullOrWhiteSpace(dto.Name))
             e["theme.name"] = "Nome do tema é obrigatório.";
+        else if (dto.Name.Length > 50)
+            e["theme.name"] = "Nome do tema não pode ter mais de 50 caracteres.";
+
+        if (!string.IsNullOrWhiteSpace(dto.Resume) && dto.Resume.Length > 100)
+            e["theme.resume"] = "Resume não pode ter mais de 100 caracteres.";
 
         if (string.IsNullOrWhiteSpace(dto.Image))
             e["theme.image"] = "Imagem do tema é obrigatória.";
@@ -93,6 +98,8 @@ public static class ThemeValidator
             {
                 if (string.IsNullOrWhiteSpace(c.ImageQuiz.Question))
                     e[$"cards[{i}].imageQuiz.question"] = "Pergunta do ImageQuiz é obrigatória.";
+                else if (c.ImageQuiz.Question.Length > 70)
+                    e[$"cards[{i}].imageQuiz.question"] = "Pergunta do ImageQuiz não pode ter mais de 70 caracteres.";
 
                 if (c.ImageQuiz.Options is null || c.ImageQuiz.Options.Count != 4)
                     e[$"cards[{i}].imageQuiz.options"] = "ImageQuiz precisa de 4 opções.";
@@ -112,14 +119,20 @@ public static class ThemeValidator
             {
                 if (string.IsNullOrWhiteSpace(c.TextQuiz.Question))
                     e[$"cards[{i}].textQuiz.question"] = "Pergunta do TextQuiz é obrigatória.";
+                else if (c.TextQuiz.Question.Length > 70)
+                    e[$"cards[{i}].textQuiz.question"] = "Pergunta do TextQuiz não pode ter mais de 70 caracteres.";
 
                 if (c.TextQuiz.Options is null || c.TextQuiz.Options.Count != 4)
                     e[$"cards[{i}].textQuiz.options"] = "TextQuiz precisa de 4 opções.";
                 else
                 {
                     for (var j = 0; j < c.TextQuiz.Options.Count; j++)
+                    {
                         if (string.IsNullOrWhiteSpace(c.TextQuiz.Options[j].Text))
                             e[$"cards[{i}].textQuiz.options[{j}].text"] = "Texto da opção é obrigatório.";
+                        else if (c.TextQuiz.Options[j].Text.Length > 150)
+                            e[$"cards[{i}].textQuiz.options[{j}].text"] = "Texto da opção não pode ter mais de 150 caracteres.";
+                    }
                 }
 
                 if (c.TextQuiz.CorrectIndex < 0 || c.TextQuiz.CorrectIndex > 3)
@@ -130,6 +143,8 @@ public static class ThemeValidator
             if (c.TrueFalseQuiz is null) e[$"cards[{i}].trueFalseQuiz"] = "TrueFalseQuiz é obrigatório.";
             else if (string.IsNullOrWhiteSpace(c.TrueFalseQuiz.Statement))
                 e[$"cards[{i}].trueFalseQuiz.statement"] = "Statement é obrigatório.";
+            else if (c.TrueFalseQuiz.Statement.Length > 200)
+                e[$"cards[{i}].trueFalseQuiz.statement"] = "Statement não pode ter mais de 200 caracteres.";
 
             // Correlation
             if (c.CorrelationQuiz is null) e[$"cards[{i}].correlationQuiz"] = "CorrelationQuiz é obrigatório.";
@@ -144,6 +159,8 @@ public static class ThemeValidator
                     {
                         if (string.IsNullOrWhiteSpace(c.CorrelationQuiz.Items[j].Text))
                             e[$"cards[{i}].correlationQuiz.items[{j}].text"] = "Texto é obrigatório.";
+                        else if (c.CorrelationQuiz.Items[j].Text.Length > 150)
+                            e[$"cards[{i}].correlationQuiz.items[{j}].text"] = "Texto não pode ter mais de 150 caracteres.";
 
                         ValidateUrlNotBase64(e, $"cards[{i}].correlationQuiz.items[{j}].imageUrl", c.CorrelationQuiz.Items[j].ImageUrl);
                     }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using Timecrax.Api.Data;
 using Timecrax.Api.Domain.Entities;
 using Timecrax.Api.Dtos.ThemeAssets;
@@ -35,9 +37,6 @@ public class ThemeAssetsController : ControllerBase
     {
         var file = req.File;
         var slotKey = (req.SlotKey ?? "").Trim();
-
-        // Neste cenário: themeId == sessionId
-        var themeId = sessionId;
 
         if (file is null || file.Length == 0)
             return BadRequest("Arquivo inválido.");
@@ -75,6 +74,9 @@ public class ThemeAssetsController : ControllerBase
 
         session.LastTouchedAt = DateTimeOffset.UtcNow;
 
+        // Se sessão tem ThemeId (modo edit), usa ele. Caso contrário usa SessionId (modo create/staging)
+        var themeId = session.ThemeId ?? sessionId;
+
         // monta o caminho final determinístico (arquivo .webp)
         var relative = GetRelativePathForSlotKey(slotKey); // ex: cards/0/main.webp
         var themeDir = Path.Combine(root, "themes", themeId.ToString());
@@ -94,9 +96,26 @@ public class ThemeAssetsController : ControllerBase
         }
 
         using (img)
-        await using (var fs = System.IO.File.Create(fullPath))
         {
-            await img.SaveAsWebpAsync(fs, new WebpEncoder { Quality = 75 }, ct);
+            // Otimização agressiva: redimensiona para tamanhos menores e qualidade menor
+            int maxDimension = 1200; // Reduzido de 1920 para 1200
+            if (img.Width > maxDimension || img.Height > maxDimension)
+            {
+                var ratio = Math.Min((double)maxDimension / img.Width, (double)maxDimension / img.Height);
+                var newWidth = (int)(img.Width * ratio);
+                var newHeight = (int)(img.Height * ratio);
+                img.Mutate(x => x.Resize(newWidth, newHeight, KnownResamplers.Box)); // Box é mais rápido
+            }
+
+            await using (var fs = System.IO.File.Create(fullPath))
+            {
+                // Qualidade reduzida para 50 e método mais rápido
+                await img.SaveAsWebpAsync(fs, new WebpEncoder
+                {
+                    Quality = 50,
+                    Method = WebpEncodingMethod.Fastest // Prioriza velocidade
+                }, ct);
+            }
         }
 
         var url = $"{publicBase}/themes/{themeId}/{relative.Replace('\\', '/')}";
@@ -239,15 +258,26 @@ public class ThemeAssetsController : ControllerBase
     }
 
     /// <summary>
-    /// Cria uma sessão de upload de assets (imagens) para criação de um Theme.
-    /// O front chama isso ao entrar em /create-theme.
+    /// Cria uma sessão de upload de assets (imagens) para criação ou edição de um Theme.
+    /// O front chama isso ao entrar em /create-theme ou ao editar um tema existente.
     /// Garante no máximo UMA sessão aberta por usuário.
     /// </summary>
     [HttpPost("sessions")]
-    public async Task<IActionResult> CreateSession(CancellationToken ct)
+    public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest? req, CancellationToken ct)
     {
         var userId = User.GetUserId();
         var now = DateTimeOffset.UtcNow;
+        Guid? themeId = req?.ThemeId;
+
+        // Se themeId fornecido, valida que o tema existe e pertence ao usuário
+        if (themeId.HasValue)
+        {
+            var themeExists = await _db.Themes
+                .AnyAsync(t => t.Id == themeId.Value && t.CreatorUserId == userId, ct);
+
+            if (!themeExists)
+                return BadRequest("Tema não encontrado ou você não tem permissão para editá-lo.");
+        }
 
         // Fecha sessões antigas abertas do mesmo usuário (política de limpeza)
         var openSessions = await _db.ThemeUploadSessions
@@ -265,6 +295,7 @@ public class ThemeAssetsController : ControllerBase
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            ThemeId = themeId,
             CreatedAt = now,
             LastTouchedAt = now,
             IsClosed = false
@@ -276,8 +307,14 @@ public class ThemeAssetsController : ControllerBase
         return Ok(new
         {
             sessionId = session.Id,
+            themeId = session.ThemeId,
             createdAt = session.CreatedAt
         });
+    }
+
+    public class CreateSessionRequest
+    {
+        public Guid? ThemeId { get; set; }
     }
 
 }
