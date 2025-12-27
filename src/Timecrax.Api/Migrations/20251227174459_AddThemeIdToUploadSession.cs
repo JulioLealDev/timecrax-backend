@@ -1,3 +1,4 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Timecrax.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddResumeToThemes : Migration
+    public partial class AddThemeIdToUploadSession : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,6 +17,13 @@ namespace Timecrax.Api.Migrations
                 table: "themes",
                 type: "text",
                 nullable: true);
+
+            migrationBuilder.AddColumn<Guid>(
+                name: "ThemeId",
+                schema: "app",
+                table: "theme_upload_sessions",
+                type: "uuid",
+                nullable: true);
         }
 
         /// <inheritdoc />
@@ -25,6 +33,11 @@ namespace Timecrax.Api.Migrations
                 name: "Resume",
                 schema: "app",
                 table: "themes");
+
+            migrationBuilder.DropColumn(
+                name: "ThemeId",
+                schema: "app",
+                table: "theme_upload_sessions");
         }
     }
 }

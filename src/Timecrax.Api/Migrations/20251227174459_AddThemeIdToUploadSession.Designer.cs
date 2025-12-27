@@ -12,7 +12,7 @@ using Timecrax.Api.Data;
 namespace Timecrax.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251227115124_AddThemeIdToUploadSession")]
+    [Migration("20251227174459_AddThemeIdToUploadSession")]
     partial class AddThemeIdToUploadSession
     {
         /// <inheritdoc />
@@ -324,6 +324,9 @@ namespace Timecrax.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("Resume")
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
