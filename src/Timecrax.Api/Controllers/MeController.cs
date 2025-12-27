@@ -59,6 +59,15 @@ public class MeController : ControllerBase
             );
         }).ToList();
 
+        // Busca todas as medals ordenadas por MinScore
+        var allMedals = await _db.Medals.AsNoTracking().OrderBy(m => m.MinScore).ToListAsync();
+        var medalDtos = allMedals.Select(m => new MedalDto(
+            m.Id,
+            m.Name,
+            m.Image,
+            m.MinScore
+        )).ToList();
+
         return Ok(new MeResponse(
             user.Id,
             user.Role,
@@ -70,7 +79,8 @@ public class MeController : ControllerBase
             user.Score,
             user.CreatedAt,
             user.UpdatedAt,
-            achievementDtos
+            achievementDtos,
+            medalDtos
         ));
     }
 

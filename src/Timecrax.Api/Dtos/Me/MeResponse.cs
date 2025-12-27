@@ -11,7 +11,8 @@ public sealed record MeResponse(
     int Score,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    List<AchievementDto> Achievements
+    List<AchievementDto> Achievements,
+    List<MedalDto> Medals
 );
 
 public sealed record AchievementDto(
@@ -20,4 +21,11 @@ public sealed record AchievementDto(
     string Image,
     string Description,
     DateTimeOffset? UnlockedAt
+);
+
+public sealed record MedalDto(
+    Guid Id,
+    string Name,
+    string Image,
+    int MinScore
 );
