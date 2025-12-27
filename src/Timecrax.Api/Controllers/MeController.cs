@@ -59,14 +59,19 @@ public class MeController : ControllerBase
             );
         }).ToList();
 
-        // Busca todas as medals ordenadas por MinScore
-        var allMedals = await _db.Medals.AsNoTracking().OrderBy(m => m.MinScore).ToListAsync();
-        var medalDtos = allMedals.Select(m => new MedalDto(
-            m.Id,
-            m.Name,
-            m.Image,
-            m.MinScore
-        )).ToList();
+        // Busca a medal atual do usuário baseada no score
+        var currentMedal = await _db.Medals
+            .AsNoTracking()
+            .Where(m => m.MinScore <= user.Score)
+            .OrderByDescending(m => m.MinScore)
+            .FirstOrDefaultAsync();
+
+        var currentMedalDto = currentMedal != null ? new MedalDto(
+            currentMedal.Id,
+            currentMedal.Name,
+            currentMedal.Image,
+            currentMedal.MinScore
+        ) : null;
 
         return Ok(new MeResponse(
             user.Id,
@@ -80,7 +85,7 @@ public class MeController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             achievementDtos,
-            medalDtos
+            currentMedalDto
         ));
     }
 

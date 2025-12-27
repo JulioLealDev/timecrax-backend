@@ -12,7 +12,7 @@ public sealed record MeResponse(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     List<AchievementDto> Achievements,
-    List<MedalDto> Medals
+    MedalDto? CurrentMedal
 );
 
 public sealed record AchievementDto(
