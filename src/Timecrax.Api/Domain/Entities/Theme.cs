@@ -6,6 +6,7 @@ public class Theme
 
     public string Name { get; set; } = default!;
     public string Image { get; set; } = default!;
+    public bool ReadyToPlay { get; set; }
 
     public Guid CreatorUserId { get; set; }
     public User CreatorUser { get; set; } = default!;

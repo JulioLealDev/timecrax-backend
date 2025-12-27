@@ -8,6 +8,9 @@ public static class ThemeMapper
 {
     public static Theme ToEntity(ThemeDto dto, Guid creatorUserId, Guid themeId)
     {
+        var cards = ToCards(dto.Cards, themeId);
+        var readyToPlay = cards.Count >= 12;
+
         return new Theme
         {
             Id = themeId,
@@ -16,7 +19,8 @@ public static class ThemeMapper
             CreatorUserId = creatorUserId,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
-            EventCards = ToCards(dto.Cards, themeId)
+            ReadyToPlay = readyToPlay,
+            EventCards = cards
         };
     }
 

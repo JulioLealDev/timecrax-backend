@@ -213,6 +213,7 @@ public class ThemesController : ControllerBase
     {
         var root = config["Storage:RootPath"]?.Trim();
         var publicBase = (config["Storage:PublicBasePath"] ?? "").TrimEnd('/');
+        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5139").TrimEnd('/');
 
         if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(publicBase))
             throw new InvalidOperationException("Storage não configurado (Storage:RootPath / Storage:PublicBasePath).");
@@ -255,7 +256,7 @@ public class ThemesController : ControllerBase
         });
 
 
-        return $"{publicBase}/themes/{themeId}/{fileName}";
+        return $"{baseUrl}{publicBase}/themes/{themeId}/{fileName}";
     }
 
     // PUT /themes/{id}
@@ -397,7 +398,9 @@ public class ThemesController : ControllerBase
         theme.UpdatedAt = DateTimeOffset.UtcNow;
 
         db.EventCards.RemoveRange(theme.EventCards);
-        theme.EventCards = ThemeMapper.ToCards(dto.Cards, theme.Id);
+        var newCards = ThemeMapper.ToCards(dto.Cards, theme.Id);
+        theme.EventCards = newCards;
+        theme.ReadyToPlay = newCards.Count >= 12;
 
         await db.SaveChangesAsync(ct);
         return NoContent();
@@ -602,6 +605,72 @@ public class ThemesController : ControllerBase
 
         var dto = ThemeMapper.ToDto(theme);
         return Ok(dto);
+    }
+
+    // DELETE /themes/{id}
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "teacher")]
+    public async Task<IActionResult> DeleteTheme(
+        [FromRoute] Guid id,
+        [FromServices] AppDbContext db,
+        CancellationToken ct)
+    {
+        var userId = User.GetUserId();
+
+        var theme = await db.Themes
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.ImageQuiz)
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.TextQuiz)
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.TrueOrFalseQuiz)
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.CorrelationQuiz)
+            .FirstOrDefaultAsync(t => t.Id == id, ct);
+
+        if (theme is null) return NotFound();
+        if (theme.CreatorUserId != userId) return Forbid();
+
+        // Remove all related entities
+        foreach (var card in theme.EventCards)
+        {
+            if (card.ImageQuiz != null) db.ImageQuizzes.Remove(card.ImageQuiz);
+            if (card.TextQuiz != null) db.TextQuizzes.Remove(card.TextQuiz);
+            if (card.TrueOrFalseQuiz != null) db.TrueOrFalseQuizzes.Remove(card.TrueOrFalseQuiz);
+            if (card.CorrelationQuiz != null) db.CorrelationQuizzes.Remove(card.CorrelationQuiz);
+        }
+
+        db.EventCards.RemoveRange(theme.EventCards);
+        db.Themes.Remove(theme);
+
+        await db.SaveChangesAsync(ct);
+
+        return NoContent();
+    }
+
+    // GET /themes/my-themes
+    [HttpGet("my-themes")]
+    [Authorize(Roles = "teacher")]
+    public async Task<IActionResult> GetMyThemes(
+        [FromServices] AppDbContext db,
+        CancellationToken ct)
+    {
+        var userId = User.GetUserId();
+
+        var themes = await db.Themes
+            .AsNoTracking()
+            .Where(t => t.CreatorUserId == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => new
+            {
+                id = t.Id,
+                name = t.Name,
+                image = t.Image,
+                readyToPlay = t.ReadyToPlay
+            })
+            .ToListAsync(ct);
+
+        return Ok(themes);
     }
 
     private static string NormalizePublicUrl(string url, string publicBase)

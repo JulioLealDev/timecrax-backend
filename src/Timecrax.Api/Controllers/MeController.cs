@@ -73,6 +73,20 @@ public class MeController : ControllerBase
             currentMedal.MinScore
         ) : null;
 
+        // Busca os temas completados pelo usuário
+        var completedThemes = await _db.UserCompletedThemes
+            .AsNoTracking()
+            .Include(uct => uct.Theme)
+            .Where(uct => uct.UserId == userId)
+            .OrderByDescending(uct => uct.CompletedAt)
+            .Select(uct => new CompletedThemeDto(
+                uct.Theme.Id,
+                uct.Theme.Name,
+                uct.Theme.Image,
+                uct.CompletedAt
+            ))
+            .ToListAsync();
+
         return Ok(new MeResponse(
             user.Id,
             user.Role,
@@ -85,7 +99,8 @@ public class MeController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             achievementDtos,
-            currentMedalDto
+            currentMedalDto,
+            completedThemes
         ));
     }
 
