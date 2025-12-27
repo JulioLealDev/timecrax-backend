@@ -11,10 +11,7 @@ namespace Timecrax.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ranks",
-                schema: "app");
-
+            
             migrationBuilder.CreateTable(
                 name: "medals",
                 schema: "app",
@@ -52,36 +49,6 @@ namespace Timecrax.Api.Migrations
             migrationBuilder.DropTable(
                 name: "medals",
                 schema: "app");
-
-            migrationBuilder.CreateTable(
-                name: "ranks",
-                schema: "app",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    Image = table.Column<string>(type: "text", nullable: false),
-                    MinScore = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ranks", x => x.Id);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ranks_MinScore",
-                schema: "app",
-                table: "ranks",
-                column: "MinScore",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ranks_Name",
-                schema: "app",
-                table: "ranks",
-                column: "Name",
-                unique: true);
         }
     }
 }
