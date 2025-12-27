@@ -161,6 +161,10 @@ public class AppDbContext : DbContext
             b.Property(x => x.Image)
                 .IsRequired();
 
+            b.Property(x => x.ReadyToPlay)
+                .IsRequired()
+                .HasDefaultValue(false);
+
             b.Property(x => x.CreatedAt)
                 .IsRequired();
 

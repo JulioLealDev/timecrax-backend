@@ -12,7 +12,8 @@ public sealed record MeResponse(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     List<AchievementDto> Achievements,
-    MedalDto? CurrentMedal
+    MedalDto? CurrentMedal,
+    List<CompletedThemeDto> CompletedThemes
 );
 
 public sealed record AchievementDto(
@@ -28,4 +29,11 @@ public sealed record MedalDto(
     string Name,
     string Image,
     int MinScore
+);
+
+public sealed record CompletedThemeDto(
+    Guid Id,
+    string Name,
+    string Image,
+    DateTimeOffset CompletedAt
 );
