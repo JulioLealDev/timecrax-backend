@@ -12,8 +12,8 @@ using Timecrax.Api.Data;
 namespace Timecrax.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251227031826_AddRanksTable")]
-    partial class AddRanksTable
+    [Migration("20251227032803_AddMedalsTable")]
+    partial class AddMedalsTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -185,7 +185,7 @@ namespace Timecrax.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Timecrax.Api.Domain.Entities.Rank", b =>
+            modelBuilder.Entity("Timecrax.Api.Domain.Entities.Medal", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -213,7 +213,7 @@ namespace Timecrax.Api.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ranks", "app");
+                    b.ToTable("medals", "app");
                 });
 
             modelBuilder.Entity("Timecrax.Api.Domain.Entities.RefreshToken", b =>
