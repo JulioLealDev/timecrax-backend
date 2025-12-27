@@ -10,11 +10,59 @@ public static class DbSeeder
     {
         // 1) Achievements
         await SeedAchievementsAsync(db, ct);
+        await SeedMedalsAsync(db, ct);
 
         // 2) (Opcional) Themes iniciais (se você quiser seedar um theme "demo")
         // await SeedDemoThemesAsync(db, ct);
 
         await db.SaveChangesAsync(ct);
+    }
+
+    private static async Task SeedMedalsAsync(AppDbContext db, CancellationToken ct)
+    {
+        // Se já existe ao menos 1, não replique (idempotente)
+        var any = await db.Medals.AnyAsync(ct);
+        if (any) return;
+
+        var now = DateTimeOffset.UtcNow;
+
+        var list = new List<Medal>
+        {
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Aprendiz",
+                Image = "http://localhost:5139/media/assets/medals/medal_01.png",
+                MinScore = 0,
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Bacharel",
+                Image = "http://localhost:5139/media/assets/medals/medal_02.png",
+                MinScore = 0,
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Mestre",
+                Image = "http://localhost:5139/media/assets/medals/medal_03.png",
+                MinScore = 0,
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Doutor",
+                Image = "http://localhost:5139/media/assets/medals/medal_04.png",
+                MinScore = 0,
+                CreatedAt = now
+            },
+        };
+
+        db.Medals.AddRange(list);
     }
 
     private static async Task SeedAchievementsAsync(AppDbContext db, CancellationToken ct)
