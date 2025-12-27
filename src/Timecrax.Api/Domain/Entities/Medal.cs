@@ -1,6 +1,6 @@
 namespace Timecrax.Api.Domain.Entities;
 
-public class Rank
+public class Medal
 {
     public Guid Id { get; set; }
 

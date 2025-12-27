@@ -182,7 +182,7 @@ namespace Timecrax.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Timecrax.Api.Domain.Entities.Rank", b =>
+            modelBuilder.Entity("Timecrax.Api.Domain.Entities.Medal", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -210,7 +210,7 @@ namespace Timecrax.Api.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ranks", "app");
+                    b.ToTable("medals", "app");
                 });
 
             modelBuilder.Entity("Timecrax.Api.Domain.Entities.RefreshToken", b =>

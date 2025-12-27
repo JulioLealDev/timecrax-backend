@@ -17,7 +17,7 @@ public class AppDbContext : DbContext
     // ============================
     // Novos DbSets
     // ============================
-    public DbSet<Rank> Ranks => Set<Rank>();
+    public DbSet<Medal> Medals => Set<Medal>();
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<UserAchievement> UserAchievements => Set<UserAchievement>();
     public DbSet<Theme> Themes => Set<Theme>();
@@ -75,11 +75,11 @@ public class AppDbContext : DbContext
         });
 
         // ============================
-        // RANKS
+        // MEDALS
         // ============================
-        modelBuilder.Entity<Rank>(b =>
+        modelBuilder.Entity<Medal>(b =>
         {
-            b.ToTable("ranks");
+            b.ToTable("medals");
 
             b.HasKey(x => x.Id);
 
