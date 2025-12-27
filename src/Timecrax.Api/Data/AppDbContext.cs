@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     // ============================
     // Novos DbSets
     // ============================
+    public DbSet<Rank> Ranks => Set<Rank>();
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<UserAchievement> UserAchievements => Set<UserAchievement>();
     public DbSet<Theme> Themes => Set<Theme>();
@@ -71,6 +72,34 @@ public class AppDbContext : DbContext
                 .IsUnique();
 
             b.HasIndex(x => x.UserId);
+        });
+
+        // ============================
+        // RANKS
+        // ============================
+        modelBuilder.Entity<Rank>(b =>
+        {
+            b.ToTable("ranks");
+
+            b.HasKey(x => x.Id);
+
+            b.Property(x => x.Name)
+                .IsRequired();
+
+            b.Property(x => x.Image)
+                .IsRequired();
+
+            b.Property(x => x.MinScore)
+                .IsRequired();
+
+            b.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            b.HasIndex(x => x.Name)
+                .IsUnique();
+
+            b.HasIndex(x => x.MinScore)
+                .IsUnique();
         });
 
         // ============================
