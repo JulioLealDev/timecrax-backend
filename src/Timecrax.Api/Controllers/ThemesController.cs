@@ -762,7 +762,9 @@ public class ThemesController : ControllerBase
                         ? $"{t.CreatorUser.FirstName} {t.CreatorUser.LastName}".Trim()
                         : t.CreatorUser.FirstName ?? t.CreatorUser.Email)
                     : "Unknown",
-                createdAt = t.CreatedAt
+                createdAt = t.CreatedAt,
+                resume = t.Resume,
+                recommendation = t.Recommendation
             })
             .ToListAsync(ct);
 
