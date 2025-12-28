@@ -45,8 +45,6 @@ public class AuthController : ControllerBase
             return BadRequest(new { error = "password must have at least 8 characters." });
 
         var school = req.SchoolName?.Trim();
-        if (role == "teacher" && string.IsNullOrWhiteSpace(school))
-            return BadRequest(new { error = "schoolName is required for teachers." });
 
         var exists = await _db.Users.AnyAsync(u => u.Email == email);
         if (exists)
