@@ -190,6 +190,8 @@ public class MeController : ControllerBase
 
     [HttpPost("picture")]
     [Authorize]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [Consumes("multipart/form-data")]
     [RequestSizeLimit(5 * 1024 * 1024)] // 5MB
     public async Task<IActionResult> UploadPicture([FromForm] IFormFile file, CancellationToken ct)
     {

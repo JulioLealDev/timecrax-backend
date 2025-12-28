@@ -7,6 +7,7 @@ using Timecrax.Api.Data;
 using Timecrax.Api.Services;
 using Timecrax.Api.Middlewares;
 using Timecrax.Api.Data.Seed;
+using Timecrax.Api.Filters;
 using Microsoft.Extensions.FileProviders;
 
 
@@ -14,7 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.OperationFilter<SwaggerFileOperationFilter>();
+});
 builder.Services.AddHostedService<DbSeedHostedService>();
 builder.Services.AddScoped<StorageImageService>();
 
