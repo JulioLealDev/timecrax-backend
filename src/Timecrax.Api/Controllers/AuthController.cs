@@ -91,6 +91,96 @@ public class AuthController : ControllerBase
         return Ok(auth);
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest req)
+    {
+        var email = (req.Email ?? "").Trim().ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+            return BadRequest(new { error = "Please provide a valid email address." });
+
+        var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
+
+        // Security: Don't reveal if user exists or not
+        // Always return success to prevent user enumeration
+        if (user is null)
+            return Ok(new { message = "If an account exists with this email, you will receive password reset instructions." });
+
+        // Generate reset token
+        var tokenPlain = TokenService.GenerateRefreshTokenPlain(); // Reuse the random token generator
+        var tokenHash = TokenService.Sha256(tokenPlain);
+
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(1); // Token valid for 1 hour
+
+        var resetToken = new PasswordResetToken
+        {
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            ExpiresAt = expiresAt,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UsedAt = null
+        };
+
+        _db.PasswordResetTokens.Add(resetToken);
+        await _db.SaveChangesAsync();
+
+        // TODO: Send email with reset link containing tokenPlain
+        // Example: https://yourapp.com/reset-password?token={tokenPlain}
+        // For now, we'll just log it (REMOVE IN PRODUCTION)
+        Console.WriteLine($"Password reset token for {email}: {tokenPlain}");
+
+        return Ok(new { message = "If an account exists with this email, you will receive password reset instructions." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Token))
+            return BadRequest(new { error = "Reset token is required." });
+
+        if (string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 8)
+            return BadRequest(new { error = "Password must be at least 8 characters." });
+
+        var tokenHash = TokenService.Sha256(req.Token);
+
+        var resetToken = await _db.PasswordResetTokens
+            .Include(t => t.User)
+            .SingleOrDefaultAsync(t => t.TokenHash == tokenHash);
+
+        if (resetToken is null)
+            return BadRequest(new { error = "Invalid or expired reset token." });
+
+        // Check if token is expired
+        if (resetToken.ExpiresAt < DateTimeOffset.UtcNow)
+            return BadRequest(new { error = "Reset token has expired." });
+
+        // Check if token was already used
+        if (resetToken.UsedAt is not null)
+            return BadRequest(new { error = "Reset token has already been used." });
+
+        // Update user password
+        var user = resetToken.User;
+        user.PasswordHash = PasswordService.Hash(req.NewPassword);
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Mark token as used
+        resetToken.UsedAt = DateTimeOffset.UtcNow;
+
+        // Revoke all existing refresh tokens for security
+        var refreshTokens = await _db.RefreshTokens
+            .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null)
+            .ToListAsync();
+
+        foreach (var rt in refreshTokens)
+        {
+            rt.RevokedAt = DateTimeOffset.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new { message = "Password has been reset successfully." });
+    }
+
     private async Task<AuthResponse> IssueTokensAsync(User user)
     {
         var (accessToken, accessExpiresAt) = _tokens.CreateAccessToken(user);

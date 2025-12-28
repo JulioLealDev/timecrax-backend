@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     // ============================
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     // ============================
     // Novos DbSets
@@ -72,6 +73,36 @@ public class AppDbContext : DbContext
                 .IsUnique();
 
             b.HasIndex(x => x.UserId);
+        });
+
+        // ============================
+        // PASSWORD RESET TOKENS
+        // ============================
+        modelBuilder.Entity<PasswordResetToken>(b =>
+        {
+            b.ToTable("password_reset_tokens");
+
+            b.HasKey(x => x.Id);
+
+            b.Property(x => x.TokenHash)
+                .IsRequired();
+
+            b.HasIndex(x => x.TokenHash)
+                .IsUnique();
+
+            b.Property(x => x.ExpiresAt)
+                .IsRequired();
+
+            b.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => x.UserId);
+            b.HasIndex(x => new { x.UserId, x.CreatedAt });
         });
 
         // ============================
