@@ -328,7 +328,17 @@ public class MeController : ControllerBase
         if (!PasswordService.Verify(req.Password, user.PasswordHash))
             return BadRequest(new { error = "password is invalid." });
 
-        // Deletar o usuário (cascade delete cuidará das relações)
+        // Deletar temas criados pelo usuário antes de deletar a conta
+        var createdThemes = await _db.Themes
+            .Where(t => t.CreatorUserId == userId)
+            .ToListAsync(ct);
+
+        if (createdThemes.Any())
+        {
+            _db.Themes.RemoveRange(createdThemes);
+        }
+
+        // Deletar o usuário (cascade delete cuidará das demais relações)
         _db.Users.Remove(user);
         await _db.SaveChangesAsync(ct);
 
