@@ -248,6 +248,22 @@ public class ThemeAssetsController : ControllerBase
             TryDeleteOldAssetFile(asset.Url, publicBase, root);
         }
 
+        // Deleta a pasta da carta se existir
+        var themeId = session.ThemeId ?? session.Id;
+        var cardFolderPath = Path.Combine(root, "themes", themeId.ToString(), "cards", cardIndex.ToString());
+        if (Directory.Exists(cardFolderPath))
+        {
+            try
+            {
+                Directory.Delete(cardFolderPath, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue - não é crítico
+                Console.WriteLine($"Warning: Failed to delete card folder {cardIndex}: {ex.Message}");
+            }
+        }
+
         // Remove registros do banco
         _db.ThemeUploadAssets.RemoveRange(assets);
 
