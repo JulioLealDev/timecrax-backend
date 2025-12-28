@@ -15,8 +15,8 @@ public static class ThemeMapper
         {
             Id = themeId,
             Name = dto.Name.Trim(),
-            Resume = dto.Resume?.Trim(),
-            Recommendation = dto.Recommendation?.Trim(),
+            Resume = dto.Resume.Trim(),
+            Recommendation = dto.Recommendation.Trim(),
             Image = dto.Image.Trim(),
             CreatorUserId = creatorUserId,
             CreatedAt = DateTimeOffset.UtcNow,

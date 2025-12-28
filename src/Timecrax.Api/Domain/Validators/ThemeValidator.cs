@@ -46,10 +46,14 @@ public static class ThemeValidator
         else if (dto.Name.Length > 50)
             e["theme.name"] = "Nome do tema não pode ter mais de 50 caracteres.";
 
-        if (!string.IsNullOrWhiteSpace(dto.Resume) && dto.Resume.Length > 100)
+        if (string.IsNullOrWhiteSpace(dto.Resume))
+            e["theme.resume"] = "Resume é obrigatório.";
+        else if (dto.Resume.Length > 100)
             e["theme.resume"] = "Resume não pode ter mais de 100 caracteres.";
 
-        if (!string.IsNullOrWhiteSpace(dto.Recommendation) && dto.Recommendation.Length > 50)
+        if (string.IsNullOrWhiteSpace(dto.Recommendation))
+            e["theme.recommendation"] = "Recommendation é obrigatório.";
+        else if (dto.Recommendation.Length > 50)
             e["theme.recommendation"] = "Recommendation não pode ter mais de 50 caracteres.";
 
         if (string.IsNullOrWhiteSpace(dto.Image))
