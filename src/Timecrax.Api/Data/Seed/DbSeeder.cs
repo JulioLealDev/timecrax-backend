@@ -356,6 +356,14 @@ public static class DbSeeder
         return users;
     }
 
+    private static readonly string[] Recommendations =
+    {
+        "1º cicle: 6 - 10 years old",
+        "2º clicle: 10 - 12 years old",
+        "3º cicle: 12 - 15 years old",
+        "4º cicle: 15 -18 years old"
+    };
+
     private static List<Theme> CreateTestThemes(int count, List<User> users)
     {
         var themes = new List<Theme>();
@@ -376,6 +384,7 @@ public static class DbSeeder
                 Id = Guid.NewGuid(),
                 Name = ThemeNames[i],
                 Resume = ThemeResumes[i],
+                Recommendation = Recommendations[Random.Next(Recommendations.Length)],
                 Image = $"https://picsum.photos/seed/theme{i}/400/300",
                 ReadyToPlay = true, // Todos prontos para jogar
                 CreatorUserId = creator.Id,

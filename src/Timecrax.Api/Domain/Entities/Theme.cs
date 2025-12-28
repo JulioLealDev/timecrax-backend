@@ -6,6 +6,7 @@ public class Theme
 
     public string Name { get; set; } = default!;
     public string? Resume { get; set; }
+    public string? Recommendation { get; set; }
     public string Image { get; set; } = default!;
     public bool ReadyToPlay { get; set; }
 
