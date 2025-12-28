@@ -188,6 +188,49 @@ public class MeController : ControllerBase
         return NoContent();
     }
 
+    // PUT /me/email
+    [HttpPut("email")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest req)
+    {
+        var userId = User.GetUserId();
+
+        if (string.IsNullOrWhiteSpace(req.CurrentPassword))
+            return BadRequest(new { error = "currentPassword is required." });
+
+        if (string.IsNullOrWhiteSpace(req.NewEmail))
+            return BadRequest(new { error = "newEmail is required." });
+
+        var newEmailTrimmed = req.NewEmail.Trim().ToLowerInvariant();
+
+        // Validar formato de email básico
+        if (!newEmailTrimmed.Contains("@") || !newEmailTrimmed.Contains("."))
+            return BadRequest(new { error = "newEmail must be a valid email address." });
+
+        var user = await _db.Users.SingleOrDefaultAsync(u => u.Id == userId);
+        if (user is null)
+            return Unauthorized(new { error = "user not found." });
+
+        // Verificar senha atual
+        if (!PasswordService.Verify(req.CurrentPassword, user.PasswordHash))
+            return BadRequest(new { error = "currentPassword is invalid." });
+
+        // Evitar "trocar para o mesmo email"
+        if (user.Email.Equals(newEmailTrimmed, StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "newEmail must be different from current email." });
+
+        // Verificar se o novo email já está em uso
+        var emailExists = await _db.Users.AnyAsync(u => u.Email == newEmailTrimmed && u.Id != userId);
+        if (emailExists)
+            return BadRequest(new { error = "newEmail is already in use." });
+
+        user.Email = newEmailTrimmed;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpPost("picture")]
     [Authorize]
     [ApiExplorerSettings(IgnoreApi = true)]
