@@ -16,6 +16,7 @@ public static class ThemeMapper
             Id = themeId,
             Name = dto.Name.Trim(),
             Resume = dto.Resume?.Trim(),
+            Recommendation = dto.Recommendation?.Trim(),
             Image = dto.Image.Trim(),
             CreatorUserId = creatorUserId,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -142,6 +143,6 @@ public static class ThemeMapper
             ))
             .ToList();
 
-        return new ThemeDto(theme.Name, theme.Resume, theme.Image, UploadSessionId: null, cards);
+        return new ThemeDto(theme.Name, theme.Resume, theme.Recommendation, theme.Image, UploadSessionId: null, cards);
     }
 }
