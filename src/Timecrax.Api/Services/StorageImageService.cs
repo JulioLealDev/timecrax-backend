@@ -77,6 +77,27 @@ public sealed class StorageImageService(IConfiguration config)
         }
     }
 
+    public void DeleteThemeFolder(Guid themeId)
+    {
+        var root = config["Storage:RootPath"];
+        if (string.IsNullOrWhiteSpace(root)) return;
+
+        var themeDir = Path.Combine(root, "themes", themeId.ToString());
+
+        if (Directory.Exists(themeDir))
+        {
+            try
+            {
+                Directory.Delete(themeDir, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't throw - deleting files is not critical
+                Console.WriteLine($"Warning: Failed to delete theme folder {themeId}: {ex.Message}");
+            }
+        }
+    }
+
     private static (string mime, byte[] bytes) ParseDataUrlImage(string dataUrl)
     {
         // data:image/png;base64,AAAA...
