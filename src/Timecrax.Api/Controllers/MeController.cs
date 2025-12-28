@@ -319,10 +319,6 @@ public class MeController : ControllerBase
             return BadRequest(new { error = "password is required to delete account." });
 
         var user = await _db.Users
-            .Include(u => u.RefreshTokens)
-            .Include(u => u.Themes)
-            .Include(u => u.UserAchievements)
-            .Include(u => u.UserCompletedThemes)
             .SingleOrDefaultAsync(u => u.Id == userId, ct);
 
         if (user is null)
