@@ -359,9 +359,9 @@ public static class DbSeeder
     private static readonly string[] Recommendations =
     {
         "1º cicle: 6 - 10 years old",
-        "2º clicle: 10 - 12 years old",
+        "2º cicle: 10 - 12 years old",
         "3º cicle: 12 - 15 years old",
-        "4º cicle: 15 -18 years old"
+        "4º cicle: 15 - 18 years old"
     };
 
     private static List<Theme> CreateTestThemes(int count, List<User> users)
