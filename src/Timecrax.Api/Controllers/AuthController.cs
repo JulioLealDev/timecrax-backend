@@ -26,8 +26,8 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
         var role = (req.Role ?? "").Trim().ToLowerInvariant();
-        if (role is not ("student" or "teacher"))
-            return BadRequest(new { error = "role must be 'student' or 'teacher'." });
+        if (role is not ("student" or "teacher" or "player"))
+            return BadRequest(new { error = "role must be 'student', 'teacher', or 'player'." });
 
         var firstName = (req.FirstName ?? "").Trim();
         if (firstName.Length < 2)
