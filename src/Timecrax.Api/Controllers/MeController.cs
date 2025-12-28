@@ -309,4 +309,34 @@ public class MeController : ControllerBase
         return Ok(users);
     }
 
+    // DELETE /me/account
+    [HttpDelete("account")]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest req, CancellationToken ct)
+    {
+        var userId = User.GetUserId();
+
+        if (string.IsNullOrWhiteSpace(req.Password))
+            return BadRequest(new { error = "password is required to delete account." });
+
+        var user = await _db.Users
+            .Include(u => u.RefreshTokens)
+            .Include(u => u.Themes)
+            .Include(u => u.UserAchievements)
+            .Include(u => u.UserCompletedThemes)
+            .SingleOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user is null)
+            return Unauthorized(new { error = "user not found." });
+
+        // Verificar senha
+        if (!PasswordService.Verify(req.Password, user.PasswordHash))
+            return BadRequest(new { error = "password is invalid." });
+
+        // Deletar o usuário (cascade delete cuidará das relações)
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync(ct);
+
+        return NoContent();
+    }
+
 }
