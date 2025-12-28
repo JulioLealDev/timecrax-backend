@@ -286,6 +286,30 @@ public static class DbSeeder
         "Civilizações Pré-Colombianas"
     };
 
+    private static readonly string[] ThemeResumes =
+    {
+        "Eventos que transformaram a França e inspiraram revoluções pelo mundo.",
+        "O maior conflito da história que mudou o curso da humanidade.",
+        "O renascimento das artes, ciências e humanismo na Itália.",
+        "O império que dominou o mundo antigo por séculos.",
+        "A chegada dos portugueses às terras brasileiras em 1500.",
+        "A transformação da produção e da sociedade através das máquinas.",
+        "A tensão entre EUA e URSS que dividiu o mundo em dois blocos.",
+        "Mil anos de história europeia entre Roma e o Renascimento.",
+        "A civilização que construiu as pirâmides e dominou o Nilo.",
+        "Berço da democracia, filosofia e cultura ocidental.",
+        "As 13 colônias se libertam do domínio britânico.",
+        "A ascensão e queda do imperador que conquistou a Europa.",
+        "A Grande Guerra que devastou a Europa e mudou fronteiras.",
+        "A queda dos czares e o nascimento da União Soviética.",
+        "Portugueses e espanhóis exploram os oceanos e descobrem novos mundos.",
+        "Martinho Lutero e a divisão do cristianismo.",
+        "O século das luzes que valorizou a razão e a ciência.",
+        "Reis absolutos concentram todo o poder nas monarquias europeias.",
+        "Sistema político e social baseado em vassalagem e terras.",
+        "Astecas, Maias e Incas: grandes civilizações da América pré-colonial."
+    };
+
     private static readonly string[] EventTitles =
     {
         "Batalha Decisiva", "Tratado de Paz", "Descoberta Importante", "Revolução Popular",
@@ -351,6 +375,7 @@ public static class DbSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = ThemeNames[i],
+                Resume = ThemeResumes[i],
                 Image = $"https://picsum.photos/seed/theme{i}/400/300",
                 ReadyToPlay = true, // Todos prontos para jogar
                 CreatorUserId = creator.Id,
