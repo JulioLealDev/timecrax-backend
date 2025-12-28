@@ -674,6 +674,7 @@ public class ThemesController : ControllerBase
     public async Task<IActionResult> DeleteTheme(
         [FromRoute] Guid id,
         [FromServices] AppDbContext db,
+        [FromServices] StorageImageService storageService,
         CancellationToken ct)
     {
         var userId = User.GetUserId();
@@ -705,6 +706,9 @@ public class ThemesController : ControllerBase
         db.Themes.Remove(theme);
 
         await db.SaveChangesAsync(ct);
+
+        // Delete physical files from storage
+        storageService.DeleteThemeFolder(id);
 
         return NoContent();
     }
