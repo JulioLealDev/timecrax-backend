@@ -242,9 +242,9 @@ TimeCrax - Learning Platform"
 
         var host = smtp["Host"]!;
         var port = smtp.GetValue<int>("Port");
-        var username = smtp["Username"]!;
-        var password = smtp["Password"]!;
-        var fromEmail = smtp["FromEmail"]!;
+        var username = ResolveEnvVar(smtp["Username"]!);
+        var password = ResolveEnvVar(smtp["Password"]!);
+        var fromEmail = ResolveEnvVar(smtp["FromEmail"]!);
         var fromName = smtp["FromName"] ?? "TimeCrax";
 
         using var client = new SmtpClient(host, port)
@@ -269,5 +269,15 @@ TimeCrax - Learning Platform"
 
         await client.SendMailAsync(message);
         _logger.LogInformation("Password reset email sent to {Email}", toEmail);
+    }
+
+    private static string ResolveEnvVar(string value)
+    {
+        if (value.StartsWith("${") && value.EndsWith("}"))
+        {
+            var envVarName = value[2..^1];
+            return Environment.GetEnvironmentVariable(envVarName) ?? value;
+        }
+        return value;
     }
 }
