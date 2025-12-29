@@ -2,12 +2,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Timecrax.Api.Data;
+using Timecrax.Api.Domain;
 using Timecrax.Api.Dtos.Me;
 using Timecrax.Api.Extensions;
 using Timecrax.Api.Services;
 using SixLabors.ImageSharp;
-using System.Diagnostics;
-using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Timecrax.Api.Controllers;
 
@@ -38,7 +37,7 @@ public class MeController : ControllerBase
             .SingleOrDefaultAsync(u => u.Id == userId);
 
         if (user is null)
-            return Unauthorized(new { error = "user not found." });
+            return Unauthorized(ErrorResponse.Single(ErrorCodes.UserNotFound));
 
         // Busca todos os achievements e verifica quais o usuário tem
         var allAchievements = await _db.Achievements.AsNoTracking().OrderBy(a => a.Image).ToListAsync();
@@ -112,20 +111,20 @@ public class MeController : ControllerBase
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Id == userId);
         if (user is null)
-            return Unauthorized(new { error = "user not found." });
+            return Unauthorized(ErrorResponse.Single(ErrorCodes.UserNotFound));
 
         // Validações (ajuste conforme regras do seu negócio)
         if (req.FirstName is not null)
         {
             var first = req.FirstName.Trim();
-            if (first.Length < 2) return BadRequest(new { error = "firstName must have at least 2 characters." });
+            if (first.Length < 2) return BadRequest(ErrorResponse.Single(ErrorCodes.FirstNameTooShort));
             user.FirstName = first;
         }
 
         if (req.LastName is not null)
         {
             var last = req.LastName.Trim();
-            if (last.Length < 2) return BadRequest(new { error = "lastName must have at least 2 characters." });
+            if (last.Length < 2) return BadRequest(ErrorResponse.Single(ErrorCodes.LastNameTooShort));
             user.LastName = last;
         }
 
@@ -133,8 +132,8 @@ public class MeController : ControllerBase
         {
             var school = req.SchoolName.Trim();
             // Exemplo: teacher precisa de escola
-            if (user.Role == "teacher" && string.IsNullOrWhiteSpace(school))
-                return BadRequest(new { error = "schoolName is required for teachers." });
+            if (user.Role == Roles.Teacher && string.IsNullOrWhiteSpace(school))
+                return BadRequest(ErrorResponse.Single(ErrorCodes.SchoolNameRequired));
 
             user.SchoolName = string.IsNullOrWhiteSpace(school) ? null : school;
         }
@@ -239,10 +238,10 @@ public class MeController : ControllerBase
     public async Task<IActionResult> UploadPicture([FromForm] IFormFile file, CancellationToken ct)
     {
         if (file == null || file.Length == 0)
-            return BadRequest(new { error = "Arquivo inválido." });
+            return BadRequest(ErrorResponse.Single(ErrorCodes.InvalidFile));
 
         if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Apenas imagens são permitidas." });
+            return BadRequest(ErrorResponse.Single(ErrorCodes.OnlyImagesAllowed));
 
         var userId = User.GetUserId();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
@@ -267,13 +266,13 @@ public class MeController : ControllerBase
         }
         catch
         {
-            return BadRequest(new { error = "Imagem inválida ou formato não suportado." });
+            return BadRequest(ErrorResponse.Single(ErrorCodes.InvalidImage));
         }
 
         using (img)
         {
             if (img.Width < 128 || img.Height < 128)
-                return BadRequest(new { error = "Imagem muito pequena." });
+                return BadRequest(ErrorResponse.Single(ErrorCodes.ImageTooSmall));
 
             await using var fs = System.IO.File.Create(filePath);
             img.SaveAsWebp(fs, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 75 });
