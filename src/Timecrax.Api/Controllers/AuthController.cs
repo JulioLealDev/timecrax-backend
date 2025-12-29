@@ -50,6 +50,22 @@ public class AuthController : ControllerBase
         if (exists)
             return Conflict(new { error = "email already in use." });
 
+        // Get GDPR version based on language
+        var language = (req.Language ?? "en").Trim().ToLowerInvariant();
+        var gdprVersion = await _db.Gdprs
+            .Where(g => g.Language == language)
+            .Select(g => (int?)g.Version)
+            .FirstOrDefaultAsync();
+
+        // Fallback to English if language not found
+        if (gdprVersion == null)
+        {
+            gdprVersion = await _db.Gdprs
+                .Where(g => g.Language == "en")
+                .Select(g => (int?)g.Version)
+                .FirstOrDefaultAsync();
+        }
+
         var now = DateTimeOffset.UtcNow;
 
         var user = new User
@@ -60,6 +76,7 @@ public class AuthController : ControllerBase
             Email = email,
             PasswordHash = PasswordService.Hash(req.Password),
             SchoolName = string.IsNullOrWhiteSpace(school) ? null : school,
+            GdprVersion = gdprVersion,
             CreatedAt = now,
             UpdatedAt = now
         };

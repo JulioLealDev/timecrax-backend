@@ -403,7 +403,7 @@ public static class DbSeeder
         for (int i = 0; i < count; i++)
         {
             var year = Random.Next(500, 2000);
-            var era = year < 1000 ? Era.AC : Era.DC;
+            var era = year < 1000 ? Era.BC : Era.AD;
 
             var card = new EventCard
             {
