@@ -30,6 +30,7 @@ public class AppDbContext : DbContext
     public DbSet<CorrelationQuiz> CorrelationQuizzes => Set<CorrelationQuiz>();
     public DbSet<ThemeUploadSession> ThemeUploadSessions => Set<ThemeUploadSession>();
     public DbSet<ThemeUploadAsset> ThemeUploadAssets => Set<ThemeUploadAsset>();
+    public DbSet<Gdpr> Gdprs => Set<Gdpr>();
 
 
 
@@ -253,7 +254,7 @@ public class AppDbContext : DbContext
 
                 t.HasCheckConstraint(
                     "ck_event_cards_era",
-                    "\"Era\" IN ('AC', 'DC')"
+                    "\"Era\" IN ('BC', 'AD')"
                 );
 
                 t.HasCheckConstraint(
@@ -462,6 +463,26 @@ public class AppDbContext : DbContext
 
             b.HasIndex(x => new { x.SessionId, x.SlotKey })
                 .IsUnique();
+        });
+
+        // ============================
+        // GDPR
+        // ============================
+        modelBuilder.Entity<Gdpr>(b =>
+        {
+            b.ToTable("gdpr");
+
+            b.HasKey(x => x.Language);
+
+            b.Property(x => x.Language)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            b.Property(x => x.Version)
+                .IsRequired();
+
+            b.Property(x => x.Terms)
+                .IsRequired();
         });
 
     }

@@ -11,6 +11,7 @@ public class User
     public int Score { get; set; }
     public string? SchoolName { get; set; }
     public string? Picture { get; set; }
+    public int? GdprVersion { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 

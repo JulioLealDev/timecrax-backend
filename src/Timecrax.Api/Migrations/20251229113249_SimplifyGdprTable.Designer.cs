@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Timecrax.Api.Data;
@@ -11,9 +12,11 @@ using Timecrax.Api.Data;
 namespace Timecrax.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251229113249_SimplifyGdprTable")]
+    partial class SimplifyGdprTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -148,9 +151,6 @@ namespace Timecrax.Api.Migrations
                     b.Property<string>("Terms")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
 
                     b.HasKey("Language");
 
@@ -500,8 +500,8 @@ namespace Timecrax.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("GdprVersion")
-                        .HasColumnType("integer");
+                    b.Property<string>("GdprAccepted")
+                        .HasColumnType("text");
 
                     b.Property<string>("LastName")
                         .IsRequired()

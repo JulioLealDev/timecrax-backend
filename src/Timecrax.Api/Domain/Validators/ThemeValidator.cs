@@ -88,8 +88,8 @@ public static class ThemeValidator
             if (string.IsNullOrWhiteSpace(c.Era))
                 e[$"cards[{i}].era"] = "Era é obrigatória.";
 
-            else if (c.Era != "AC" && c.Era != "DC")
-                e[$"cards[{i}].era"] = "Era inválida. Use AC ou DC.";
+            else if (c.Era != "BC" && c.Era != "AD")
+                e[$"cards[{i}].era"] = "Invalid era. Use BC or AD.";
 
             if (string.IsNullOrWhiteSpace(c.Caption))
                 e[$"cards[{i}].caption"] = "Texto (caption) é obrigatório.";

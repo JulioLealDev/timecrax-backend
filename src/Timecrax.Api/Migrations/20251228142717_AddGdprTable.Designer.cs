@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Timecrax.Api.Data;
@@ -11,9 +12,11 @@ using Timecrax.Api.Data;
 namespace Timecrax.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251228142717_AddGdprTable")]
+    partial class AddGdprTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,7 +134,7 @@ namespace Timecrax.Api.Migrations
 
                     b.ToTable("event_cards", "app", t =>
                         {
-                            t.HasCheckConstraint("ck_event_cards_era", "\"Era\" IN ('BC', 'AD')");
+                            t.HasCheckConstraint("ck_event_cards_era", "\"Era\" IN ('AC', 'DC')");
 
                             t.HasCheckConstraint("ck_event_cards_orderindex", "\"OrderIndex\" >= 0");
 
@@ -141,18 +144,37 @@ namespace Timecrax.Api.Migrations
 
             modelBuilder.Entity("Timecrax.Api.Domain.Entities.Gdpr", b =>
                 {
-                    b.Property<string>("Language")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("LastUpdate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Terms")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Language");
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastUpdate")
+                        .IsUnique()
+                        .HasFilter("\"LastUpdate\" = true");
+
+                    b.HasIndex("Version")
+                        .IsUnique();
 
                     b.ToTable("gdpr", "app");
                 });
@@ -500,8 +522,8 @@ namespace Timecrax.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("GdprVersion")
-                        .HasColumnType("integer");
+                    b.Property<string>("GdprAccepted")
+                        .HasColumnType("text");
 
                     b.Property<string>("LastName")
                         .IsRequired()
