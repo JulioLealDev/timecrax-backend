@@ -79,6 +79,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddSingleton<RateLimitService>();
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
 

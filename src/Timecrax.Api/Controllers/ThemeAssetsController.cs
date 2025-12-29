@@ -109,11 +109,10 @@ public class ThemeAssetsController : ControllerBase
 
             await using (var fs = System.IO.File.Create(fullPath))
             {
-                // Qualidade reduzida para 50 e método mais rápido
                 await img.SaveAsWebpAsync(fs, new WebpEncoder
                 {
-                    Quality = 50,
-                    Method = WebpEncodingMethod.Fastest // Prioriza velocidade
+                    Quality = 75,
+                    Method = WebpEncodingMethod.Default
                 }, ct);
             }
         }
@@ -260,7 +259,7 @@ public class ThemeAssetsController : ControllerBase
             catch (Exception ex)
             {
                 // Log error but continue - não é crítico
-                Console.WriteLine($"Warning: Failed to delete card folder {cardIndex}: {ex.Message}");
+                // Failed to delete card folder - non-critical error
             }
         }
 

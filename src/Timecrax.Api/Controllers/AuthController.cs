@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Timecrax.Api.Data;
 using Timecrax.Api.Domain.Entities;
 using Timecrax.Api.Dtos.Auth;
+using Timecrax.Api.Extensions;
 using Timecrax.Api.Services;
 
 namespace Timecrax.Api.Controllers;
@@ -15,13 +16,15 @@ public class AuthController : ControllerBase
     private readonly TokenService _tokens;
     private readonly IConfiguration _config;
     private readonly EmailService _email;
+    private readonly RateLimitService _rateLimit;
 
-    public AuthController(AppDbContext db, TokenService tokens, IConfiguration config, EmailService email)
+    public AuthController(AppDbContext db, TokenService tokens, IConfiguration config, EmailService email, RateLimitService rateLimit)
     {
         _db = db;
         _tokens = tokens;
         _config = config;
         _email = email;
+        _rateLimit = rateLimit;
     }
 
     [HttpPost("register")]
@@ -40,7 +43,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { code = "LAST_NAME_TOO_SHORT" });
 
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
-        if (email.Length < 5 || !email.Contains('@'))
+        if (!email.IsValidEmail())
             return BadRequest(new { code = "INVALID_EMAIL" });
 
         if (string.IsNullOrWhiteSpace(req.Password) || req.Password.Length < 8)
@@ -114,8 +117,15 @@ public class AuthController : ControllerBase
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
         var language = (req.Language ?? "en").Trim().ToLowerInvariant();
 
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        if (!email.IsValidEmail())
             return BadRequest(new { code = "INVALID_EMAIL" });
+
+        // Rate limiting: max 5 attempts per email per 15 minutes
+        var rateLimitKey = $"forgot-password:{email}";
+        if (_rateLimit.IsRateLimited(rateLimitKey))
+            return StatusCode(429, new { code = "TOO_MANY_REQUESTS" });
+
+        _rateLimit.RecordAttempt(rateLimitKey);
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
 

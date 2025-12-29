@@ -202,8 +202,8 @@ public class MeController : ControllerBase
 
         var newEmailTrimmed = req.NewEmail.Trim().ToLowerInvariant();
 
-        // Validar formato de email básico
-        if (!newEmailTrimmed.Contains("@") || !newEmailTrimmed.Contains("."))
+        // Validar formato de email
+        if (!newEmailTrimmed.IsValidEmail())
             return BadRequest(new { code = "INVALID_EMAIL" });
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Id == userId);
@@ -291,11 +291,23 @@ public class MeController : ControllerBase
 
     // GET /me/ranking
     [HttpGet("ranking")]
-    public async Task<IActionResult> GetRanking(CancellationToken ct)
+    public async Task<IActionResult> GetRanking(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 1;
+        if (pageSize > 100) pageSize = 100;
+
+        var totalCount = await _db.Users.CountAsync(ct);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
         var users = await _db.Users
             .AsNoTracking()
             .OrderByDescending(u => u.Score)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(u => new
             {
                 id = u.Id,
@@ -306,7 +318,14 @@ public class MeController : ControllerBase
             })
             .ToListAsync(ct);
 
-        return Ok(users);
+        return Ok(new
+        {
+            items = users,
+            page,
+            pageSize,
+            totalCount,
+            totalPages
+        });
     }
 
     // DELETE /me/account
