@@ -5,6 +5,13 @@ namespace Timecrax.Api.Middlewares;
 
 public sealed class ExceptionHandlingMiddleware : IMiddleware
 {
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+
+    public ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
@@ -41,9 +48,7 @@ public sealed class ExceptionHandlingMiddleware : IMiddleware
                 traceId = context.TraceIdentifier
             };
 
-            // Em DEV, é útil logar a exceção completa
-            // (não devolva detalhes ao client)
-            Console.Error.WriteLine(ex);
+            _logger.LogError(ex, "Unexpected error. TraceId: {TraceId}", context.TraceIdentifier);
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
         }
