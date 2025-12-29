@@ -14,12 +14,14 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _db;
     private readonly TokenService _tokens;
     private readonly IConfiguration _config;
+    private readonly EmailService _email;
 
-    public AuthController(AppDbContext db, TokenService tokens, IConfiguration config)
+    public AuthController(AppDbContext db, TokenService tokens, IConfiguration config, EmailService email)
     {
         _db = db;
         _tokens = tokens;
         _config = config;
+        _email = email;
     }
 
     [HttpPost("register")]
@@ -110,22 +112,23 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest req)
     {
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
+        var language = (req.Language ?? "en").Trim().ToLowerInvariant();
 
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
-            return BadRequest(new { error = "Please provide a valid email address." });
+            return BadRequest(new { code = "INVALID_EMAIL" });
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
 
         // Security: Don't reveal if user exists or not
         // Always return success to prevent user enumeration
         if (user is null)
-            return Ok(new { message = "If an account exists with this email, you will receive password reset instructions." });
+            return Ok(new { success = true });
 
         // Generate reset token
-        var tokenPlain = TokenService.GenerateRefreshTokenPlain(); // Reuse the random token generator
+        var tokenPlain = TokenService.GenerateRefreshTokenPlain();
         var tokenHash = TokenService.Sha256(tokenPlain);
 
-        var expiresAt = DateTimeOffset.UtcNow.AddHours(1); // Token valid for 1 hour
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
 
         var resetToken = new PasswordResetToken
         {
@@ -139,22 +142,20 @@ public class AuthController : ControllerBase
         _db.PasswordResetTokens.Add(resetToken);
         await _db.SaveChangesAsync();
 
-        // TODO: Send email with reset link containing tokenPlain
-        // Example: https://yourapp.com/reset-password?token={tokenPlain}
-        // For now, we'll just log it (REMOVE IN PRODUCTION)
-        Console.WriteLine($"Password reset token for {email}: {tokenPlain}");
+        // Send email with reset link
+        await _email.SendPasswordResetEmailAsync(email, tokenPlain, language);
 
-        return Ok(new { message = "If an account exists with this email, you will receive password reset instructions." });
+        return Ok(new { success = true });
     }
 
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest req)
     {
         if (string.IsNullOrWhiteSpace(req.Token))
-            return BadRequest(new { error = "Reset token is required." });
+            return BadRequest(new { code = "TOKEN_REQUIRED" });
 
         if (string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 8)
-            return BadRequest(new { error = "Password must be at least 8 characters." });
+            return BadRequest(new { code = "PASSWORD_TOO_SHORT" });
 
         var tokenHash = TokenService.Sha256(req.Token);
 
@@ -163,15 +164,15 @@ public class AuthController : ControllerBase
             .SingleOrDefaultAsync(t => t.TokenHash == tokenHash);
 
         if (resetToken is null)
-            return BadRequest(new { error = "Invalid or expired reset token." });
+            return BadRequest(new { code = "INVALID_TOKEN" });
 
         // Check if token is expired
         if (resetToken.ExpiresAt < DateTimeOffset.UtcNow)
-            return BadRequest(new { error = "Reset token has expired." });
+            return BadRequest(new { code = "TOKEN_EXPIRED" });
 
         // Check if token was already used
         if (resetToken.UsedAt is not null)
-            return BadRequest(new { error = "Reset token has already been used." });
+            return BadRequest(new { code = "TOKEN_ALREADY_USED" });
 
         // Update user password
         var user = resetToken.User;
@@ -193,7 +194,7 @@ public class AuthController : ControllerBase
 
         await _db.SaveChangesAsync();
 
-        return Ok(new { message = "Password has been reset successfully." });
+        return Ok(new { success = true });
     }
 
     private async Task<AuthResponse> IssueTokensAsync(User user)
