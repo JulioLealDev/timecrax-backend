@@ -6,6 +6,14 @@ namespace Timecrax.Api.Domain.Mappers;
 
 public static class ThemeMapper
 {
+    private static void ValidateQuizOptions<T>(IList<T>? options, int requiredCount, string quizType, int cardIndex)
+    {
+        if (options == null || options.Count < requiredCount)
+        {
+            throw new ArgumentException(
+                $"Card at index {cardIndex}: {quizType} requires {requiredCount} options, but got {options?.Count ?? 0}");
+        }
+    }
     public static Theme ToEntity(ThemeDto dto, Guid creatorUserId, Guid themeId)
     {
         var cards = ToCards(dto.Cards, themeId);
@@ -33,6 +41,15 @@ public static class ThemeMapper
             .Select(c =>
             {
                 var cardId = Guid.NewGuid();
+                var cardIndex = c.OrderIndex;
+
+                // Validate all quiz options before accessing
+                ValidateQuizOptions(c.ImageQuiz?.Options, 4, "ImageQuiz", cardIndex);
+                ValidateQuizOptions(c.TextQuiz?.Options, 4, "TextQuiz", cardIndex);
+                ValidateQuizOptions(c.CorrelationQuiz?.Items, 3, "CorrelationQuiz", cardIndex);
+
+                if (c.TrueFalseQuiz == null)
+                    throw new ArgumentException($"Card at index {cardIndex}: TrueFalseQuiz is required");
 
                 var entity = new EventCard
                 {
@@ -50,7 +67,7 @@ public static class ThemeMapper
                 {
                     Id = Guid.NewGuid(),
                     EventCardId = cardId,
-                    Question = c.ImageQuiz.Question.Trim(),
+                    Question = c.ImageQuiz!.Question.Trim(),
                     Image1 = c.ImageQuiz.Options[0].ImageUrl.Trim(),
                     Image2 = c.ImageQuiz.Options[1].ImageUrl.Trim(),
                     Image3 = c.ImageQuiz.Options[2].ImageUrl.Trim(),
@@ -62,7 +79,7 @@ public static class ThemeMapper
                 {
                     Id = Guid.NewGuid(),
                     EventCardId = cardId,
-                    Question = c.TextQuiz.Question.Trim(),
+                    Question = c.TextQuiz!.Question.Trim(),
                     Text1 = c.TextQuiz.Options[0].Text.Trim(),
                     Text2 = c.TextQuiz.Options[1].Text.Trim(),
                     Text3 = c.TextQuiz.Options[2].Text.Trim(),
@@ -82,7 +99,7 @@ public static class ThemeMapper
                 {
                     Id = Guid.NewGuid(),
                     EventCardId = cardId,
-                    Image1 = c.CorrelationQuiz.Items[0].ImageUrl.Trim(),
+                    Image1 = c.CorrelationQuiz!.Items[0].ImageUrl.Trim(),
                     Image2 = c.CorrelationQuiz.Items[1].ImageUrl.Trim(),
                     Image3 = c.CorrelationQuiz.Items[2].ImageUrl.Trim(),
                     Text1 = c.CorrelationQuiz.Items[0].Text.Trim(),
@@ -100,47 +117,56 @@ public static class ThemeMapper
     {
         var cards = theme.EventCards
             .OrderBy(c => c.OrderIndex)
-            .Select((c, idx) => new EventCardDto(
-                OrderIndex: c.OrderIndex,
-                Year: c.Year,
-                Era: c.Era.ToString(),
-                Caption: c.Title,
-                ImageUrl: c.Image,
-                ImageQuiz: new ImageQuizDto(
-                    Question: c.ImageQuiz!.Question,
-                    Options: new List<ImageOptionDto>
-                    {
-                        new(c.ImageQuiz.Image1),
-                        new(c.ImageQuiz.Image2),
-                        new(c.ImageQuiz.Image3),
-                        new(c.ImageQuiz.Image4),
-                    },
-                    CorrectIndex: c.ImageQuiz.CorrectImageIndex
-                ),
-                TextQuiz: new TextQuizDto(
-                    Question: c.TextQuiz!.Question,
-                    Options: new List<TextOptionDto>
-                    {
-                        new(c.TextQuiz.Text1),
-                        new(c.TextQuiz.Text2),
-                        new(c.TextQuiz.Text3),
-                        new(c.TextQuiz.Text4),
-                    },
-                    CorrectIndex: c.TextQuiz.CorrectTextIndex
-                ),
-                TrueFalseQuiz: new TrueFalseQuizDto(
-                    Statement: c.TrueOrFalseQuiz!.Text,
-                    Answer: c.TrueOrFalseQuiz.IsTrue
-                ),
-                CorrelationQuiz: new CorrelationQuizDto(
-                    Items: new List<CorrelationItemDto>
-                    {
-                        new(c.CorrelationQuiz.Image1, c.CorrelationQuiz.Text1),
-                        new(c.CorrelationQuiz.Image2, c.CorrelationQuiz.Text2),
-                        new(c.CorrelationQuiz.Image3, c.CorrelationQuiz.Text3),
-                    }
-                )
-            ))
+            .Select((c, idx) =>
+            {
+                if (c.ImageQuiz == null || c.TextQuiz == null || c.TrueOrFalseQuiz == null || c.CorrelationQuiz == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Card at index {c.OrderIndex} has missing quiz data. Ensure all quizzes are loaded.");
+                }
+
+                return new EventCardDto(
+                    OrderIndex: c.OrderIndex,
+                    Year: c.Year,
+                    Era: c.Era.ToString(),
+                    Caption: c.Title,
+                    ImageUrl: c.Image,
+                    ImageQuiz: new ImageQuizDto(
+                        Question: c.ImageQuiz.Question,
+                        Options: new List<ImageOptionDto>
+                        {
+                            new(c.ImageQuiz.Image1),
+                            new(c.ImageQuiz.Image2),
+                            new(c.ImageQuiz.Image3),
+                            new(c.ImageQuiz.Image4),
+                        },
+                        CorrectIndex: c.ImageQuiz.CorrectImageIndex
+                    ),
+                    TextQuiz: new TextQuizDto(
+                        Question: c.TextQuiz.Question,
+                        Options: new List<TextOptionDto>
+                        {
+                            new(c.TextQuiz.Text1),
+                            new(c.TextQuiz.Text2),
+                            new(c.TextQuiz.Text3),
+                            new(c.TextQuiz.Text4),
+                        },
+                        CorrectIndex: c.TextQuiz.CorrectTextIndex
+                    ),
+                    TrueFalseQuiz: new TrueFalseQuizDto(
+                        Statement: c.TrueOrFalseQuiz.Text,
+                        Answer: c.TrueOrFalseQuiz.IsTrue
+                    ),
+                    CorrelationQuiz: new CorrelationQuizDto(
+                        Items: new List<CorrelationItemDto>
+                        {
+                            new(c.CorrelationQuiz.Image1, c.CorrelationQuiz.Text1),
+                            new(c.CorrelationQuiz.Image2, c.CorrelationQuiz.Text2),
+                            new(c.CorrelationQuiz.Image3, c.CorrelationQuiz.Text3),
+                        }
+                    )
+                );
+            })
             .ToList();
 
         return new ThemeDto(theme.Name, theme.Resume, theme.Recommendation, theme.Image, UploadSessionId: null, cards);
