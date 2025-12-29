@@ -153,24 +153,24 @@ public class MeController : ControllerBase
         var userId = User.GetUserId();
 
         if (string.IsNullOrWhiteSpace(req.CurrentPassword))
-            return BadRequest(new { error = "currentPassword is required." });
+            return BadRequest(new { code = "CURRENT_PASSWORD_REQUIRED" });
 
         if (string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 8)
-            return BadRequest(new { error = "newPassword must have at least 8 characters." });
+            return BadRequest(new { code = "NEW_PASSWORD_TOO_SHORT" });
 
         var user = await _db.Users
             .Include(u => u.RefreshTokens)
             .SingleOrDefaultAsync(u => u.Id == userId);
 
         if (user is null)
-            return Unauthorized(new { error = "user not found." });
+            return Unauthorized(new { code = "USER_NOT_FOUND" });
 
         if (!PasswordService.Verify(req.CurrentPassword, user.PasswordHash))
-            return BadRequest(new { error = "currentPassword is invalid." });
+            return BadRequest(new { code = "INVALID_CURRENT_PASSWORD" });
 
         // Evitar "trocar para a mesma senha"
         if (PasswordService.Verify(req.NewPassword, user.PasswordHash))
-            return BadRequest(new { error = "newPassword must be different from current password." });
+            return BadRequest(new { code = "SAME_PASSWORD" });
 
         user.PasswordHash = PasswordService.Hash(req.NewPassword);
         user.UpdatedAt = DateTimeOffset.UtcNow;
@@ -195,33 +195,33 @@ public class MeController : ControllerBase
         var userId = User.GetUserId();
 
         if (string.IsNullOrWhiteSpace(req.CurrentPassword))
-            return BadRequest(new { error = "currentPassword is required." });
+            return BadRequest(new { code = "CURRENT_PASSWORD_REQUIRED" });
 
         if (string.IsNullOrWhiteSpace(req.NewEmail))
-            return BadRequest(new { error = "newEmail is required." });
+            return BadRequest(new { code = "NEW_EMAIL_REQUIRED" });
 
         var newEmailTrimmed = req.NewEmail.Trim().ToLowerInvariant();
 
         // Validar formato de email básico
         if (!newEmailTrimmed.Contains("@") || !newEmailTrimmed.Contains("."))
-            return BadRequest(new { error = "newEmail must be a valid email address." });
+            return BadRequest(new { code = "INVALID_EMAIL" });
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Id == userId);
         if (user is null)
-            return Unauthorized(new { error = "user not found." });
+            return Unauthorized(new { code = "USER_NOT_FOUND" });
 
         // Verificar senha atual
         if (!PasswordService.Verify(req.CurrentPassword, user.PasswordHash))
-            return BadRequest(new { error = "currentPassword is invalid." });
+            return BadRequest(new { code = "INVALID_CURRENT_PASSWORD" });
 
         // Evitar "trocar para o mesmo email"
         if (user.Email.Equals(newEmailTrimmed, StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "newEmail must be different from current email." });
+            return BadRequest(new { code = "SAME_EMAIL" });
 
         // Verificar se o novo email já está em uso
         var emailExists = await _db.Users.AnyAsync(u => u.Email == newEmailTrimmed && u.Id != userId);
         if (emailExists)
-            return BadRequest(new { error = "newEmail is already in use." });
+            return BadRequest(new { code = "EMAIL_IN_USE" });
 
         user.Email = newEmailTrimmed;
         user.UpdatedAt = DateTimeOffset.UtcNow;
@@ -316,17 +316,17 @@ public class MeController : ControllerBase
         var userId = User.GetUserId();
 
         if (string.IsNullOrWhiteSpace(req.Password))
-            return BadRequest(new { error = "password is required to delete account." });
+            return BadRequest(new { code = "PASSWORD_REQUIRED" });
 
         var user = await _db.Users
             .SingleOrDefaultAsync(u => u.Id == userId, ct);
 
         if (user is null)
-            return Unauthorized(new { error = "user not found." });
+            return Unauthorized(new { code = "USER_NOT_FOUND" });
 
         // Verificar senha
         if (!PasswordService.Verify(req.Password, user.PasswordHash))
-            return BadRequest(new { error = "password is invalid." });
+            return BadRequest(new { code = "INVALID_PASSWORD" });
 
         // Deletar temas criados pelo usuário antes de deletar a conta
         var createdThemes = await _db.Themes

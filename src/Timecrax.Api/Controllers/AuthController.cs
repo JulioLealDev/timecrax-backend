@@ -27,28 +27,28 @@ public class AuthController : ControllerBase
     {
         var role = (req.Role ?? "").Trim().ToLowerInvariant();
         if (role is not ("student" or "teacher" or "player"))
-            return BadRequest(new { error = "role must be 'student', 'teacher', or 'player'." });
+            return BadRequest(new { code = "INVALID_ROLE" });
 
         var firstName = (req.FirstName ?? "").Trim();
         if (firstName.Length < 2)
-            return BadRequest(new { error = "firstName must have at least 2 characters." });
+            return BadRequest(new { code = "FIRST_NAME_TOO_SHORT" });
 
         var lastName = (req.LastName ?? "").Trim();
         if (lastName.Length < 2)
-            return BadRequest(new { error = "lastName must have at least 2 characters." });
+            return BadRequest(new { code = "LAST_NAME_TOO_SHORT" });
 
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
         if (email.Length < 5 || !email.Contains('@'))
-            return BadRequest(new { error = "email is invalid." });
+            return BadRequest(new { code = "INVALID_EMAIL" });
 
         if (string.IsNullOrWhiteSpace(req.Password) || req.Password.Length < 8)
-            return BadRequest(new { error = "password must have at least 8 characters." });
+            return BadRequest(new { code = "PASSWORD_TOO_SHORT" });
 
         var school = req.SchoolName?.Trim();
 
         var exists = await _db.Users.AnyAsync(u => u.Email == email);
         if (exists)
-            return Conflict(new { error = "email already in use." });
+            return Conflict(new { code = "EMAIL_IN_USE" });
 
         // Get GDPR version based on language
         var language = (req.Language ?? "en").Trim().ToLowerInvariant();
@@ -97,10 +97,10 @@ public class AuthController : ControllerBase
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
         if (user is null)
-            return Unauthorized(new { error = "invalid credentials." });
+            return Unauthorized(new { code = "INVALID_CREDENTIALS" });
 
         if (!PasswordService.Verify(password, user.PasswordHash))
-            return Unauthorized(new { error = "invalid credentials." });
+            return Unauthorized(new { code = "INVALID_CREDENTIALS" });
 
         var auth = await IssueTokensAsync(user);
         return Ok(auth);
