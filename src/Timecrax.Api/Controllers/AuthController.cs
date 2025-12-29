@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Timecrax.Api.Data;
+using Timecrax.Api.Domain;
 using Timecrax.Api.Domain.Entities;
 using Timecrax.Api.Dtos.Auth;
 using Timecrax.Api.Extensions;
@@ -31,8 +32,8 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
         var role = (req.Role ?? "").Trim().ToLowerInvariant();
-        if (role is not ("student" or "teacher" or "player"))
-            return BadRequest(new { code = "INVALID_ROLE" });
+        if (!Roles.IsValid(role))
+            return BadRequest(ErrorResponse.Single(ErrorCodes.InvalidRole));
 
         var firstName = (req.FirstName ?? "").Trim();
         if (firstName.Length < 2)

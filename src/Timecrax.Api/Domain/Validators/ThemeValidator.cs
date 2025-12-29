@@ -63,10 +63,7 @@ public static class ThemeValidator
             // permite dataUrl OU URL(no caso de edição)
             if (!IsDataUrl(dto.Image) && !IsHttpUrl(dto.Image))
                 e["theme.image"] = "Imagem do tema deve ser dataUrl (base64) ou uma URL válida.";
-         }
-
-        //if (dto.Cards is null || dto.Cards.Count < 12)
-        //    e["theme.cards"] = "São necessárias pelo menos 12 cartas para criar baralho.";
+        }
 
         if (dto.Cards is null) return e;
         var duplicates = dto.Cards
@@ -189,13 +186,7 @@ public static class ThemeValidator
         if (IsDataUrl(value))
         {
             e[key] = "Imagem deve ser URL (não base64).";
-            return;
         }
-
-        //if (!IsHttpUrl(value))
-       // {
-        //    e[key] = "Imagem deve ser uma URL válida.";
-       // }
     }
 
     private static bool IsDataUrl(string? s)
