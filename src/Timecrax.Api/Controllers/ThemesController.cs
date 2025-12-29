@@ -274,9 +274,6 @@ public class ThemesController : ControllerBase
         {
             var userId = User.GetUserId();
 
-            Console.WriteLine($"[DEBUG] Update theme {id} - User: {userId}");
-            Console.WriteLine($"[DEBUG] UploadSessionId: {dto.UploadSessionId}");
-
             var errors = ThemeValidator.ValidateForUpdate(dto);
             if (errors.Count > 0) return BadRequest(new { errors });
 
@@ -328,12 +325,9 @@ public class ThemesController : ControllerBase
 
         if (uploadSessionId.HasValue)
         {
-            Console.WriteLine($"[DEBUG] Processing upload session {uploadSessionId.Value}");
-
             // Proteção importante: não aceitar "sessão == tema"
             if (uploadSessionId.Value == id)
             {
-                Console.WriteLine($"[ERROR] Session ID equals theme ID");
                 return BadRequest(new
                 {
                     errors = new Dictionary<string, string>
@@ -351,7 +345,6 @@ public class ThemesController : ControllerBase
 
             if (uploadSession is null)
             {
-                Console.WriteLine($"[ERROR] Session not found or closed");
                 return BadRequest(new
                 {
                     errors = new Dictionary<string, string>
@@ -361,14 +354,10 @@ public class ThemesController : ControllerBase
                 });
             }
 
-            Console.WriteLine($"[DEBUG] Session found - ThemeId: {uploadSession.ThemeId}");
-
             // puxa assets da sessão para validar "slotKey -> url"
             sessionAssets = await db.ThemeUploadAssets
                 .Where(a => a.SessionId == uploadSessionId.Value)
                 .ToDictionaryAsync(a => a.SlotKey, a => a.Url, ct);
-
-            Console.WriteLine($"[DEBUG] Found {sessionAssets.Count} assets in session");
         }
 
         // 3) valida URLs (podem ser do tema OU da sessão)
@@ -409,13 +398,11 @@ public class ThemesController : ControllerBase
         }
 
             // 5) persistência
-            Console.WriteLine($"[DEBUG] Saving theme changes...");
             theme.Name = dto.Name.Trim();
             theme.Image = dto.Image!.Trim();
             theme.UpdatedAt = DateTimeOffset.UtcNow;
 
             // Remove cartas antigas usando query SQL direta (mais seguro para concorrência)
-            Console.WriteLine($"[DEBUG] Removing {theme.EventCards.Count} old cards...");
             var oldCardIds = theme.EventCards.Select(c => c.Id).ToList();
 
             if (oldCardIds.Any())
@@ -431,7 +418,6 @@ public class ThemesController : ControllerBase
             theme = await db.Themes.FirstOrDefaultAsync(t => t.Id == id, ct);
             if (theme is null) return NotFound();
 
-            Console.WriteLine($"[DEBUG] Creating {dto.Cards.Count} new cards...");
             var newCards = ThemeMapper.ToCards(dto.Cards, theme.Id);
 
             // Adiciona novas cartas
@@ -456,14 +442,11 @@ public class ThemesController : ControllerBase
             theme.ReadyToPlay = newCards.Count >= 12;
 
             await db.SaveChangesAsync(ct);
-            Console.WriteLine($"[DEBUG] Theme updated successfully");
             return NoContent();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR] Update theme failed: {ex.GetType().Name}: {ex.Message}");
-            Console.WriteLine($"[ERROR] StackTrace: {ex.StackTrace}");
-            return StatusCode(500, new { error = "Failed to update theme", details = ex.Message, type = ex.GetType().Name });
+            return StatusCode(500, new { error = "Failed to update theme", details = ex.Message });
         }
     }
 
@@ -744,13 +727,26 @@ public class ThemesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetThemesStorage(
         [FromServices] AppDbContext db,
-        CancellationToken ct)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var themes = await db.Themes
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 1;
+        if (pageSize > 50) pageSize = 50;
+
+        var query = db.Themes
             .AsNoTracking()
             .Include(t => t.CreatorUser)
-            .Where(t => t.ReadyToPlay == true)
+            .Where(t => t.ReadyToPlay == true);
+
+        var totalCount = await query.CountAsync(ct);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var themes = await query
             .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(t => new
             {
                 id = t.Id,
@@ -768,7 +764,14 @@ public class ThemesController : ControllerBase
             })
             .ToListAsync(ct);
 
-        return Ok(themes);
+        return Ok(new
+        {
+            items = themes,
+            page,
+            pageSize,
+            totalCount,
+            totalPages
+        });
     }
 
     private static string NormalizePublicUrl(string url, string publicBase)

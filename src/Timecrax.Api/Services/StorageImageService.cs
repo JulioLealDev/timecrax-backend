@@ -93,7 +93,7 @@ public sealed class StorageImageService(IConfiguration config)
             catch (Exception ex)
             {
                 // Log error but don't throw - deleting files is not critical
-                Console.WriteLine($"Warning: Failed to delete theme folder {themeId}: {ex.Message}");
+                // Failed to delete theme folder - non-critical error
             }
         }
     }
