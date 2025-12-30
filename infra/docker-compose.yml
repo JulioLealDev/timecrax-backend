@@ -6,9 +6,9 @@ services:
     container_name: timecrax_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: timecrax
-      POSTGRES_USER: timecrax
-      POSTGRES_PASSWORD: timecrax_pwd
+      POSTGRES_DB: ${DB_NAME:-timecrax}
+      POSTGRES_USER: ${DB_USER:-timecrax}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-timecrax_pwd}
     ports:
       - "5432:5432"
     volumes:
@@ -38,6 +38,16 @@ services:
       - "5139:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-timecrax}
+      DB_USER: ${DB_USER:-timecrax}
+      DB_PASSWORD: ${DB_PASSWORD:-timecrax_pwd}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-TimecraxDevSecretKey32CharactersMin!}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     volumes:
       - D:/timecrax-storage:/data/storage
     depends_on:
