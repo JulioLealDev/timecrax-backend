@@ -715,7 +715,8 @@ public class ThemesController : ControllerBase
                 name = t.Name,
                 image = t.Image,
                 readyToPlay = t.ReadyToPlay,
-                createdAt = t.CreatedAt
+                createdAt = t.CreatedAt,
+                cardCount = t.EventCards.Count
             })
             .ToListAsync(ct);
 
