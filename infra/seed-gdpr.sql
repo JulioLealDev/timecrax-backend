@@ -5,7 +5,7 @@
 DELETE FROM app.gdpr;
 
 -- English
-INSERT INTO app.gdpr (language, version, terms) VALUES ('en', 1,
+INSERT INTO app.gdpr ("Language", "Version", "Terms") VALUES ('en', 1,
 '## Data Protection Terms
 
 Welcome to Timecrax! We are committed to protecting your personal data in accordance with the General Data Protection Regulation (GDPR).
@@ -63,7 +63,7 @@ We implement appropriate technical and organizational measures to protect your p
 For any questions about these terms or your personal data, please contact our data protection team.');
 
 -- Portuguese (Brazil)
-INSERT INTO app.gdpr (language, version, terms) VALUES ('pt-br', 1,
+INSERT INTO app.gdpr ("Language", "Version", "Terms") VALUES ('pt-br', 1,
 '## Termos de Proteção de Dados
 
 Bem-vindo ao Timecrax! Estamos comprometidos em proteger seus dados pessoais de acordo com o Regulamento Geral de Proteção de Dados (RGPD/LGPD).
@@ -121,7 +121,7 @@ Implementamos medidas técnicas e organizacionais apropriadas para proteger seus
 Para qualquer dúvida sobre estes termos ou seus dados pessoais, entre em contato com nossa equipe de proteção de dados.');
 
 -- Portuguese (Portugal)
-INSERT INTO app.gdpr (language, version, terms) VALUES ('pt-pt', 1,
+INSERT INTO app.gdpr ("Language", "Version", "Terms") VALUES ('pt-pt', 1,
 '## Termos de Proteção de Dados
 
 Bem-vindo ao Timecrax! Estamos empenhados em proteger os seus dados pessoais de acordo com o Regulamento Geral de Proteção de Dados (RGPD).
@@ -179,7 +179,7 @@ Implementamos medidas técnicas e organizacionais adequadas para proteger os seu
 Para qualquer questão sobre estes termos ou os seus dados pessoais, contacte a nossa equipa de proteção de dados.');
 
 -- French
-INSERT INTO app.gdpr (language, version, terms) VALUES ('fr', 1,
+INSERT INTO app.gdpr ("Language", "Version", "Terms") VALUES ('fr', 1,
 '## Conditions de Protection des Données
 
 Bienvenue sur Timecrax ! Nous nous engageons à protéger vos données personnelles conformément au Règlement Général sur la Protection des Données (RGPD).
@@ -237,7 +237,7 @@ Nous mettons en œuvre des mesures techniques et organisationnelles appropriées
 Pour toute question concernant ces conditions ou vos données personnelles, veuillez contacter notre équipe de protection des données.');
 
 -- Spanish
-INSERT INTO app.gdpr (language, version, terms) VALUES ('es', 1,
+INSERT INTO app.gdpr ("Language", "Version", "Terms") VALUES ('es', 1,
 '## Términos de Protección de Datos
 
 ¡Bienvenido a Timecrax! Estamos comprometidos con la protección de sus datos personales de acuerdo con el Reglamento General de Protección de Datos (RGPD).
