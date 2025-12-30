@@ -154,8 +154,9 @@ public class MeController : ControllerBase
         if (string.IsNullOrWhiteSpace(req.CurrentPassword))
             return BadRequest(new { code = "CURRENT_PASSWORD_REQUIRED" });
 
-        if (string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 8)
-            return BadRequest(new { code = "NEW_PASSWORD_TOO_SHORT" });
+        var passwordValidation = req.NewPassword.ValidatePassword();
+        if (!passwordValidation.IsValid)
+            return BadRequest(new { code = passwordValidation.ErrorCode });
 
         var user = await _db.Users
             .Include(u => u.RefreshTokens)

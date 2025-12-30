@@ -8,7 +8,9 @@ public class RateLimitService
     private readonly TimeSpan _windowDuration = TimeSpan.FromMinutes(15);
     private readonly int _maxAttempts = 5;
 
-    public bool IsRateLimited(string key)
+    public bool IsRateLimited(string key) => IsRateLimited(key, _maxAttempts, (int)_windowDuration.TotalMinutes);
+
+    public bool IsRateLimited(string key, int maxAttempts, int windowMinutes)
     {
         CleanupExpiredEntries();
 
@@ -20,24 +22,27 @@ public class RateLimitService
                 return false;
             }
 
-            return entry.Attempts >= _maxAttempts;
+            return entry.Attempts >= maxAttempts;
         }
 
         return false;
     }
 
-    public void RecordAttempt(string key)
+    public void RecordAttempt(string key) => RecordAttempt(key, (int)_windowDuration.TotalMinutes);
+
+    public void RecordAttempt(string key, int windowMinutes)
     {
         var now = DateTimeOffset.UtcNow;
+        var window = TimeSpan.FromMinutes(windowMinutes);
 
         _entries.AddOrUpdate(
             key,
-            _ => new RateLimitEntry { Attempts = 1, ExpiresAt = now.Add(_windowDuration) },
+            _ => new RateLimitEntry { Attempts = 1, ExpiresAt = now.Add(window) },
             (_, existing) =>
             {
                 if (existing.ExpiresAt < now)
                 {
-                    return new RateLimitEntry { Attempts = 1, ExpiresAt = now.Add(_windowDuration) };
+                    return new RateLimitEntry { Attempts = 1, ExpiresAt = now.Add(window) };
                 }
                 existing.Attempts++;
                 return existing;

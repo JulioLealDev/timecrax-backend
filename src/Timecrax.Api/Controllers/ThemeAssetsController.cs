@@ -20,11 +20,13 @@ public class ThemeAssetsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
+    private readonly ILogger<ThemeAssetsController> _logger;
 
-    public ThemeAssetsController(AppDbContext db, IConfiguration config)
+    public ThemeAssetsController(AppDbContext db, IConfiguration config, ILogger<ThemeAssetsController> logger)
     {
         _db = db;
         _config = config;
+        _logger = logger;
     }
 
     [HttpPost("sessions/{sessionId:guid}/upload")]
@@ -258,8 +260,7 @@ public class ThemeAssetsController : ControllerBase
             }
             catch (Exception ex)
             {
-                // Log error but continue - não é crítico
-                // Failed to delete card folder - non-critical error
+                _logger.LogWarning(ex, "Failed to delete card folder at {Path}", cardFolderPath);
             }
         }
 

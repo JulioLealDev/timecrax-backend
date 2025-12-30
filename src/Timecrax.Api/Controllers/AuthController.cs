@@ -31,6 +31,12 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
+        // Rate limiting: max 10 registration attempts per IP per hour
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var rateLimitKey = $"register:{ip}";
+        if (_rateLimit.IsRateLimited(rateLimitKey, maxAttempts: 10, windowMinutes: 60))
+            return StatusCode(429, new { code = "TOO_MANY_REQUESTS" });
+
         var role = (req.Role ?? "").Trim().ToLowerInvariant();
         if (!Roles.IsValid(role))
             return BadRequest(ErrorResponse.Single(ErrorCodes.InvalidRole));
@@ -47,8 +53,9 @@ public class AuthController : ControllerBase
         if (!email.IsValidEmail())
             return BadRequest(new { code = "INVALID_EMAIL" });
 
-        if (string.IsNullOrWhiteSpace(req.Password) || req.Password.Length < 8)
-            return BadRequest(new { code = "PASSWORD_TOO_SHORT" });
+        var passwordValidation = req.Password.ValidatePassword();
+        if (!passwordValidation.IsValid)
+            return BadRequest(new { code = passwordValidation.ErrorCode });
 
         var school = req.SchoolName?.Trim();
 
@@ -101,12 +108,23 @@ public class AuthController : ControllerBase
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
         var password = req.Password ?? "";
 
+        // Rate limiting: max 5 failed attempts per email per 15 minutes
+        var rateLimitKey = $"login:{email}";
+        if (_rateLimit.IsRateLimited(rateLimitKey))
+            return StatusCode(429, new { code = "TOO_MANY_REQUESTS" });
+
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
         if (user is null)
+        {
+            _rateLimit.RecordAttempt(rateLimitKey);
             return Unauthorized(new { code = "INVALID_CREDENTIALS" });
+        }
 
         if (!PasswordService.Verify(password, user.PasswordHash))
+        {
+            _rateLimit.RecordAttempt(rateLimitKey);
             return Unauthorized(new { code = "INVALID_CREDENTIALS" });
+        }
 
         var auth = await IssueTokensAsync(user);
         return Ok(auth);
@@ -165,8 +183,9 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(req.Token))
             return BadRequest(new { code = "TOKEN_REQUIRED" });
 
-        if (string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 8)
-            return BadRequest(new { code = "PASSWORD_TOO_SHORT" });
+        var passwordValidation = req.NewPassword.ValidatePassword();
+        if (!passwordValidation.IsValid)
+            return BadRequest(new { code = passwordValidation.ErrorCode });
 
         var tokenHash = TokenService.Sha256(req.Token);
 

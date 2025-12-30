@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -6,7 +7,7 @@ using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Timecrax.Api.Services;
 
-public sealed class StorageImageService(IConfiguration config)
+public sealed class StorageImageService(IConfiguration config, ILogger<StorageImageService> logger)
 {
     private static readonly HashSet<string> AllowedMime = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -92,8 +93,7 @@ public sealed class StorageImageService(IConfiguration config)
             }
             catch (Exception ex)
             {
-                // Log error but don't throw - deleting files is not critical
-                // Failed to delete theme folder - non-critical error
+                logger.LogWarning(ex, "Failed to delete theme folder for theme {ThemeId}", themeId);
             }
         }
     }

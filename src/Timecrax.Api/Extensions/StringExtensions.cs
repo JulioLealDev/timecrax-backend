@@ -19,4 +19,33 @@ public static partial class StringExtensions
 
         return EmailRegex().IsMatch(email);
     }
+
+    /// <summary>
+    /// Validates password complexity requirements:
+    /// - Minimum 12 characters
+    /// - At least one uppercase letter
+    /// - At least one lowercase letter
+    /// - At least one digit
+    /// </summary>
+    public static PasswordValidationResult ValidatePassword(this string? password)
+    {
+        if (string.IsNullOrEmpty(password))
+            return new PasswordValidationResult(false, "PASSWORD_REQUIRED");
+
+        if (password.Length < 12)
+            return new PasswordValidationResult(false, "PASSWORD_TOO_SHORT");
+
+        if (!password.Any(char.IsUpper))
+            return new PasswordValidationResult(false, "PASSWORD_NO_UPPERCASE");
+
+        if (!password.Any(char.IsLower))
+            return new PasswordValidationResult(false, "PASSWORD_NO_LOWERCASE");
+
+        if (!password.Any(char.IsDigit))
+            return new PasswordValidationResult(false, "PASSWORD_NO_DIGIT");
+
+        return new PasswordValidationResult(true, null);
+    }
 }
+
+public record PasswordValidationResult(bool IsValid, string? ErrorCode);
