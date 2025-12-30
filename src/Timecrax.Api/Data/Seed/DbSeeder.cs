@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Timecrax.Api.Data;
 using Timecrax.Api.Domain.Entities;
 using Timecrax.Api.Domain.Enums;
@@ -10,7 +11,7 @@ public static class DbSeeder
 {
     private static readonly Random Random = new();
 
-    public static async Task SeedAsync(AppDbContext db, CancellationToken ct = default)
+    public static async Task SeedAsync(AppDbContext db, ILogger logger, CancellationToken ct = default)
     {
         // 1) Achievements e Medals (sempre)
         await SeedAchievementsAsync(db, ct);
@@ -19,27 +20,27 @@ public static class DbSeeder
         // 2) Test Data (apenas se não houver usuários)
         if (!await db.Users.AnyAsync(ct))
         {
-            await SeedTestDataAsync(db, ct);
+            await SeedTestDataAsync(db, logger, ct);
         }
 
         await db.SaveChangesAsync(ct);
     }
 
-    private static async Task SeedTestDataAsync(AppDbContext db, CancellationToken ct)
+    private static async Task SeedTestDataAsync(AppDbContext db, ILogger logger, CancellationToken ct)
     {
-        Console.WriteLine("Starting test data seed...");
+        logger.LogInformation("Starting test data seed...");
 
         // Criar 75 usuários
         var users = CreateTestUsers(75);
         db.Users.AddRange(users);
         await db.SaveChangesAsync(ct);
-        Console.WriteLine("✓ Created 75 test users");
+        logger.LogInformation("Created {Count} test users", 75);
 
         // Criar 20 temas completos (15 cartas cada)
         var themes = CreateTestThemes(20, users);
         db.Themes.AddRange(themes);
         await db.SaveChangesAsync(ct);
-        Console.WriteLine("✓ Created 20 test themes");
+        logger.LogInformation("Created {Count} test themes", 20);
 
         // Criar cartas para cada tema
         foreach (var theme in themes)
@@ -48,8 +49,8 @@ public static class DbSeeder
             db.EventCards.AddRange(cards);
         }
         await db.SaveChangesAsync(ct);
-        Console.WriteLine("✓ Created event cards with quizzes");
-        Console.WriteLine("Test data seed completed!");
+        logger.LogInformation("Created event cards with quizzes");
+        logger.LogInformation("Test data seed completed");
     }
 
     private static async Task SeedMedalsAsync(AppDbContext db, CancellationToken ct)

@@ -7,11 +7,13 @@ public class DbSeedHostedService : IHostedService
 {
     private readonly IServiceProvider _sp;
     private readonly IWebHostEnvironment _env;
+    private readonly ILogger<DbSeedHostedService> _logger;
 
-    public DbSeedHostedService(IServiceProvider sp, IWebHostEnvironment env)
+    public DbSeedHostedService(IServiceProvider sp, IWebHostEnvironment env, ILogger<DbSeedHostedService> logger)
     {
         _sp = sp;
         _env = env;
+        _logger = logger;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -26,26 +28,16 @@ public class DbSeedHostedService : IHostedService
         // Garante migrations aplicadas (opcional, mas útil em DEV)
         await db.Database.MigrateAsync(cancellationToken);
 
-        await Seed.SafeRunAsync(db, cancellationToken);
+        try
+        {
+            await DbSeeder.SeedAsync(db, _logger, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Database seed failed");
+            throw;
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    private static class Seed
-    {
-        public static async Task SafeRunAsync(AppDbContext db, CancellationToken ct)
-        {
-            // Evita estourar a app por seed
-            try
-            {
-                await Timecrax.Api.Data.Seed.DbSeeder.SeedAsync(db, ct);
-            }
-            catch (Exception ex)
-            {
-                // Em dev, normalmente você quer ver isso no console
-                Console.WriteLine($"[SEED] Failed: {ex}");
-                throw;
-            }
-        }
-    }
 }
