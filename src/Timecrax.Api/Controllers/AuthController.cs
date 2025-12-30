@@ -13,6 +13,14 @@ namespace Timecrax.Api.Controllers;
 [Route("auth")]
 public class AuthController : ControllerBase
 {
+    // Rate limiting constants
+    private const int RegistrationMaxAttempts = 10;
+    private const int RegistrationWindowMinutes = 60;
+    private const int LoginMaxAttempts = 5;
+    private const int LoginWindowMinutes = 15;
+    private const int PasswordResetMaxAttempts = 5;
+    private const int PasswordResetWindowMinutes = 60;
+
     private readonly AppDbContext _db;
     private readonly TokenService _tokens;
     private readonly IConfiguration _config;
@@ -31,10 +39,10 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
-        // Rate limiting: max 10 registration attempts per IP per hour
+        // Rate limiting by IP
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var rateLimitKey = $"register:{ip}";
-        if (_rateLimit.IsRateLimited(rateLimitKey, maxAttempts: 10, windowMinutes: 60))
+        if (_rateLimit.IsRateLimited(rateLimitKey, RegistrationMaxAttempts, RegistrationWindowMinutes))
             return StatusCode(429, new { code = "TOO_MANY_REQUESTS" });
 
         var role = (req.Role ?? "").Trim().ToLowerInvariant();
@@ -108,21 +116,21 @@ public class AuthController : ControllerBase
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
         var password = req.Password ?? "";
 
-        // Rate limiting: max 5 failed attempts per email per 15 minutes
+        // Rate limiting by email
         var rateLimitKey = $"login:{email}";
-        if (_rateLimit.IsRateLimited(rateLimitKey))
+        if (_rateLimit.IsRateLimited(rateLimitKey, LoginMaxAttempts, LoginWindowMinutes))
             return StatusCode(429, new { code = "TOO_MANY_REQUESTS" });
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
         if (user is null)
         {
-            _rateLimit.RecordAttempt(rateLimitKey);
+            _rateLimit.RecordAttempt(rateLimitKey, LoginWindowMinutes);
             return Unauthorized(new { code = "INVALID_CREDENTIALS" });
         }
 
         if (!PasswordService.Verify(password, user.PasswordHash))
         {
-            _rateLimit.RecordAttempt(rateLimitKey);
+            _rateLimit.RecordAttempt(rateLimitKey, LoginWindowMinutes);
             return Unauthorized(new { code = "INVALID_CREDENTIALS" });
         }
 
@@ -139,12 +147,12 @@ public class AuthController : ControllerBase
         if (!email.IsValidEmail())
             return BadRequest(new { code = "INVALID_EMAIL" });
 
-        // Rate limiting: max 5 attempts per email per 15 minutes
+        // Rate limiting by email
         var rateLimitKey = $"forgot-password:{email}";
-        if (_rateLimit.IsRateLimited(rateLimitKey))
+        if (_rateLimit.IsRateLimited(rateLimitKey, PasswordResetMaxAttempts, PasswordResetWindowMinutes))
             return StatusCode(429, new { code = "TOO_MANY_REQUESTS" });
 
-        _rateLimit.RecordAttempt(rateLimitKey);
+        _rateLimit.RecordAttempt(rateLimitKey, PasswordResetWindowMinutes);
 
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
 
