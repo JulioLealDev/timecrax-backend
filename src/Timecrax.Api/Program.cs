@@ -69,13 +69,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Resolve environment variables in connection string
+var connectionString = builder.Configuration.GetConnectionString("Default") ?? "";
+connectionString = ResolveEnvVars(connectionString);
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseNpgsql(
-        builder.Configuration.GetConnectionString("Default"),
+        connectionString,
         npg => npg.MigrationsHistoryTable("__EFMigrationsHistory", "app")
     );
 });
+
+static string ResolveEnvVars(string value)
+{
+    return System.Text.RegularExpressions.Regex.Replace(value, @"\$\{(\w+)\}", match =>
+    {
+        var envVarName = match.Groups[1].Value;
+        return Environment.GetEnvironmentVariable(envVarName) ?? match.Value;
+    });
+}
 
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<EmailService>();
