@@ -14,7 +14,7 @@ public class TokenService(IConfiguration config)
         var jwt = config.GetSection("Jwt");
         var issuer = jwt["Issuer"]!;
         var audience = jwt["Audience"]!;
-        var key = jwt["Key"]!;
+        var key = ResolveEnvVariable(jwt["Key"]!);
         var minutes = int.Parse(jwt["AccessTokenMinutes"]!);
 
         var expiresAt = DateTimeOffset.UtcNow.AddMinutes(minutes);
@@ -57,5 +57,16 @@ public class TokenService(IConfiguration config)
         var bytes = Encoding.UTF8.GetBytes(input);
         var hash = SHA256.HashData(bytes);
         return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static string ResolveEnvVariable(string value)
+    {
+        if (value.StartsWith("${") && value.EndsWith("}"))
+        {
+            var envVarName = value[2..^1];
+            return Environment.GetEnvironmentVariable(envVarName)
+                ?? throw new InvalidOperationException($"Environment variable '{envVarName}' is not set.");
+        }
+        return value;
     }
 }
