@@ -22,7 +22,7 @@ public class EmailService
 
         if (!enabled)
         {
-            _logger.LogWarning("SMTP is disabled. Reset token for {Email}: {Token}", toEmail, resetToken);
+            _logger.LogWarning("SMTP is disabled. Password reset requested for {Email} - email not sent", toEmail);
             return;
         }
 
