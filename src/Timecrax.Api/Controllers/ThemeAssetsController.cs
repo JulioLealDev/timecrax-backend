@@ -99,6 +99,13 @@ public class ThemeAssetsController : ControllerBase
 
         using (img)
         {
+            // Validação de tamanho mínimo
+            const int minDimension = 128;
+            if (img.Width < minDimension || img.Height < minDimension)
+            {
+                return BadRequest($"Imagem muito pequena. Tamanho mínimo: {minDimension}x{minDimension} pixels.");
+            }
+
             // Otimização agressiva: redimensiona para tamanhos menores e qualidade menor
             int maxDimension = 1200; // Reduzido de 1920 para 1200
             if (img.Width > maxDimension || img.Height > maxDimension)
