@@ -775,6 +775,61 @@ public class ThemesController : ControllerBase
         });
     }
 
+    // GET /themes/{id}/download
+    // Endpoint para o jogo Unity baixar o tema completo com todas as cartas
+    [HttpGet("{id:guid}/download")]
+    [Authorize]
+    public async Task<IActionResult> DownloadTheme(
+        Guid id,
+        [FromServices] AppDbContext db,
+        CancellationToken ct = default)
+    {
+        var theme = await db.Themes
+            .AsNoTracking()
+            .Include(t => t.EventCards)
+            .Include(t => t.CreatorUser)
+            .FirstOrDefaultAsync(t => t.Id == id, ct);
+
+        if (theme == null)
+            return NotFound(new { code = "THEME_NOT_FOUND", message = "Tema não encontrado" });
+
+        if (!theme.ReadyToPlay)
+            return BadRequest(new { code = "THEME_NOT_READY", message = "Este tema ainda não está pronto para jogar" });
+
+        // Ordena as cartas por OrderIndex
+        var cards = theme.EventCards
+            .OrderBy(c => c.OrderIndex)
+            .Select(c => new
+            {
+                id = c.Id,
+                orderIndex = c.OrderIndex,
+                year = c.Year,
+                era = c.Era.ToString(),
+                title = c.Title,
+                imageUrl = c.Image
+            })
+            .ToList();
+
+        var creatorName = theme.CreatorUser != null
+            ? (!string.IsNullOrWhiteSpace(theme.CreatorUser.FirstName) && !string.IsNullOrWhiteSpace(theme.CreatorUser.LastName)
+                ? $"{theme.CreatorUser.FirstName} {theme.CreatorUser.LastName}".Trim()
+                : theme.CreatorUser.FirstName ?? theme.CreatorUser.Email)
+            : "Unknown";
+
+        return Ok(new
+        {
+            id = theme.Id,
+            name = theme.Name,
+            version = theme.UpdatedAt.ToString("yyyyMMddHHmmss"),
+            creatorName,
+            resume = theme.Resume,
+            recommendation = theme.Recommendation,
+            coverImageUrl = theme.Image,
+            cardCount = cards.Count,
+            cards
+        });
+    }
+
     private static string NormalizePublicUrl(string url, string publicBase)
     {
         if (string.IsNullOrWhiteSpace(url)) return url;
