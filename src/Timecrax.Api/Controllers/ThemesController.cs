@@ -761,7 +761,8 @@ public class ThemesController : ControllerBase
                     : "Unknown",
                 createdAt = t.CreatedAt,
                 resume = t.Resume,
-                recommendation = t.Recommendation
+                recommendation = t.Recommendation,
+                numberOfCards = t.EventCards.Count
             })
             .ToListAsync(ct);
 
