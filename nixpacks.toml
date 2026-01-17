@@ -1,0 +1,8 @@
+[phases.build]
+cmds = ["dotnet publish src/Timecrax.Api/Timecrax.Api.csproj -c Release -o out"]
+
+[phases.setup]
+nixPkgs = ["dotnet-sdk_8"]
+
+[start]
+cmd = "dotnet out/Timecrax.Api.dll"
