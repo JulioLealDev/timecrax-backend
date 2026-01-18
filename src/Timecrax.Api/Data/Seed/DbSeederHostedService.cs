@@ -18,8 +18,9 @@ public class DbSeedHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        // Recomendado: rodar apenas em Development (você pode ajustar)
-        if (!_env.IsDevelopment())
+        // Rodar seed em Development OU quando SEED_DATABASE=true
+        var seedEnabled = Environment.GetEnvironmentVariable("SEED_DATABASE");
+        if (!_env.IsDevelopment() && seedEnabled?.ToLower() != "true")
             return;
 
         using var scope = _sp.CreateScope();
