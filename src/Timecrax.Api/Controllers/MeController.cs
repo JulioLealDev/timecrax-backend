@@ -24,7 +24,13 @@ public class MeController : ControllerBase
         _db = db;
         _env = env;
         _config = config;
+    }
 
+    private string ToAbsoluteUrl(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return path ?? "";
+        if (path.StartsWith("http://") || path.StartsWith("https://")) return path;
+        return $"{Request.Scheme}://{Request.Host}{path}";
     }
 
     // (Opcional) GET /me -> para o app carregar perfil
@@ -62,7 +68,7 @@ public class MeController : ControllerBase
             return new AchievementDto(
                 a.Id,
                 a.Name,
-                a.Image,
+                ToAbsoluteUrl(a.Image),
                 a.Description,
                 userAch?.AchievedAt
             );
@@ -78,7 +84,7 @@ public class MeController : ControllerBase
         var currentMedalDto = currentMedal != null ? new MedalDto(
             currentMedal.Id,
             currentMedal.Name,
-            currentMedal.Image,
+            ToAbsoluteUrl(currentMedal.Image),
             currentMedal.MinScore
         ) : null;
 

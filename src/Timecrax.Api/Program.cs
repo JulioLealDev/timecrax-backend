@@ -139,7 +139,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseStaticFiles();
+// Serve static files from wwwroot (medals, achievements assets)
+app.UseStaticFiles();
 
 var storageRoot = builder.Configuration["Storage:RootPath"];
 var publicBasePath = builder.Configuration["Storage:PublicBasePath"] ?? "/media";
