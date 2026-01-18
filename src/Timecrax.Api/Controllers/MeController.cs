@@ -29,7 +29,7 @@ public class MeController : ControllerBase
 
     // (Opcional) GET /me -> para o app carregar perfil
     [HttpGet]
-    public async Task<ActionResult<MeResponse>> GetMe()
+    public async Task<ActionResult<MeResponse>> GetMe([FromQuery] string language = "en")
     {
         var userId = User.GetUserId();
 
@@ -39,16 +39,26 @@ public class MeController : ControllerBase
         if (user is null)
             return Unauthorized(ErrorResponse.Single(ErrorCodes.UserNotFound));
 
-        // Busca todos os achievements e verifica quais o usuário tem
-        var allAchievements = await _db.Achievements.AsNoTracking().OrderBy(a => a.Image).ToListAsync();
+        // Normaliza o idioma para lowercase
+        var lang = language?.ToLowerInvariant() ?? "en";
+
+        // Busca todos os achievements do idioma selecionado e verifica quais o usuário tem
+        var allAchievements = await _db.Achievements
+            .AsNoTracking()
+            .Where(a => a.Language == lang)
+            .OrderBy(a => a.Image)
+            .ToListAsync();
+
         var userAchievements = await _db.UserAchievements
             .AsNoTracking()
             .Where(ua => ua.UserId == userId)
+            .Include(ua => ua.Achievement)
             .ToListAsync();
 
         var achievementDtos = allAchievements.Select(a =>
         {
-            var userAch = userAchievements.FirstOrDefault(ua => ua.AchievementId == a.Id);
+            // Verifica se o usuário tem um achievement com o mesmo nome (em qualquer idioma)
+            var userAch = userAchievements.FirstOrDefault(ua => ua.Achievement.Name == a.Name || ua.AchievementId == a.Id);
             return new AchievementDto(
                 a.Id,
                 a.Name,
@@ -58,10 +68,10 @@ public class MeController : ControllerBase
             );
         }).ToList();
 
-        // Busca a medal atual do usuário baseada no score
+        // Busca a medal atual do usuário baseada no score e idioma
         var currentMedal = await _db.Medals
             .AsNoTracking()
-            .Where(m => m.MinScore <= user.Score)
+            .Where(m => m.MinScore <= user.Score && m.Language == lang)
             .OrderByDescending(m => m.MinScore)
             .FirstOrDefaultAsync();
 

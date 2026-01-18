@@ -69,6 +69,7 @@ public static class DbSeeder
                 Name = "Aprendiz",
                 Image = "http://localhost:5139/media/assets/medals/medal_01.png",
                 MinScore = 0,
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Medal
@@ -77,6 +78,7 @@ public static class DbSeeder
                 Name = "Bacharel",
                 Image = "http://localhost:5139/media/assets/medals/medal_02.png",
                 MinScore = 1000,
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Medal
@@ -85,6 +87,7 @@ public static class DbSeeder
                 Name = "Mestre",
                 Image = "http://localhost:5139/media/assets/medals/medal_03.png",
                 MinScore = 2000,
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Medal
@@ -93,6 +96,151 @@ public static class DbSeeder
                 Name = "Doutor",
                 Image = "http://localhost:5139/media/assets/medals/medal_04.png",
                 MinScore = 3000,
+                Language = "pt-br",
+                CreatedAt = now
+            },
+                        new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Aprendiz",
+                Image = "http://localhost:5139/media/assets/medals/medal_01.png",
+                MinScore = 0,
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Licenciado",
+                Image = "http://localhost:5139/media/assets/medals/medal_02.png",
+                MinScore = 1000,
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Mestre",
+                Image = "http://localhost:5139/media/assets/medals/medal_03.png",
+                MinScore = 2000,
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Doutor",
+                Image = "http://localhost:5139/media/assets/medals/medal_04.png",
+                MinScore = 3000,
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Aprendiz",
+                Image = "http://localhost:5139/media/assets/medals/medal_01.png",
+                MinScore = 0,
+                Language = "es",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Graduado",
+                Image = "http://localhost:5139/media/assets/medals/medal_02.png",
+                MinScore = 1000,
+                Language = "es",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Máster",
+                Image = "http://localhost:5139/media/assets/medals/medal_03.png",
+                MinScore = 2000,
+                Language = "es",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Doctor",
+                Image = "http://localhost:5139/media/assets/medals/medal_04.png",
+                MinScore = 3000,
+                Language = "es",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apprentice",
+                Image = "http://localhost:5139/media/assets/medals/medal_01.png",
+                MinScore = 0,
+                Language = "en",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Bachelor",
+                Image = "http://localhost:5139/media/assets/medals/medal_02.png",
+                MinScore = 1000,
+                Language = "en",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Master",
+                Image = "http://localhost:5139/media/assets/medals/medal_03.png",
+                MinScore = 2000,
+                Language = "en",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Doctor",
+                Image = "http://localhost:5139/media/assets/medals/medal_04.png",
+                MinScore = 3000,
+                Language = "en",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apprenti",
+                Image = "http://localhost:5139/media/assets/medals/medal_01.png",
+                MinScore = 0,
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Licence",
+                Image = "http://localhost:5139/media/assets/medals/medal_02.png",
+                MinScore = 1000,
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Master",
+                Image = "http://localhost:5139/media/assets/medals/medal_03.png",
+                MinScore = 2000,
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Medal
+            {
+                Id = Guid.NewGuid(),
+                Name = "Docteur",
+                Image = "http://localhost:5139/media/assets/medals/medal_04.png",
+                MinScore = 3000,
+                Language = "fr",
                 CreatedAt = now
             },
         };
@@ -116,6 +264,7 @@ public static class DbSeeder
                 Name = "Primeira Vitória",
                 Image = "http://localhost:5139/media/assets/achievements/ach_1.png",
                 Description = "Complete um tema pela primeira vez.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -124,6 +273,7 @@ public static class DbSeeder
                 Name = "Aprendiz Persistente",
                 Image = "http://localhost:5139/media/assets/achievements/ach_2.png",
                 Description = "Complete 5 temas diferentes.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -132,6 +282,7 @@ public static class DbSeeder
                 Name = "Mestre do Passado",
                 Image = "http://localhost:5139/media/assets/achievements/ach_3.png",
                 Description = "Complete 10 temas diferentes.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -140,6 +291,7 @@ public static class DbSeeder
                 Name = "Expert da História",
                 Image = "http://localhost:5139/media/assets/achievements/ach_4.png",
                 Description = "Complete 20 temas diferentes.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -148,6 +300,7 @@ public static class DbSeeder
                 Name = "Senhor do Tempo",
                 Image = "http://localhost:5139/media/assets/achievements/ach_5.png",
                 Description = "Complete 50 temas diferentes.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -156,6 +309,7 @@ public static class DbSeeder
                 Name = "Memória Afiada",
                 Image = "http://localhost:5139/media/assets/achievements/ach_6.png",
                 Description = "Acerte 3 quizzes seguidos.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -164,6 +318,7 @@ public static class DbSeeder
                 Name = "Mente Magnífica",
                 Image = "http://localhost:5139/media/assets/achievements/ach_7.png",
                 Description = "Acerte 5 quizzes seguidos.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -172,6 +327,7 @@ public static class DbSeeder
                 Name = "Enciclopédia Humana",
                 Image = "http://localhost:5139/media/assets/achievements/ach_8.png",
                 Description = "Acerte 10 quizzes seguidos.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -180,6 +336,7 @@ public static class DbSeeder
                 Name = "Sorte de Principiante",
                 Image = "http://localhost:5139/media/assets/achievements/ach_9.png",
                 Description = "Complete 1 tema jogando sozinho.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -188,6 +345,7 @@ public static class DbSeeder
                 Name = "Guerreiro Solitário",
                 Image = "http://localhost:5139/media/assets/achievements/ach_10.png",
                 Description = "Complete 5 temas jogando sozinho.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -196,6 +354,7 @@ public static class DbSeeder
                 Name = "Exército de um homem só",
                 Image = "http://localhost:5139/media/assets/achievements/ach_11.png",
                 Description = "Complete 10 temas jogando sozinho.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -204,6 +363,7 @@ public static class DbSeeder
                 Name = "Juntos venceremos",
                 Image = "http://localhost:5139/media/assets/achievements/ach_12.png",
                 Description = "Complete 1 tema jogando em grupo.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -212,6 +372,7 @@ public static class DbSeeder
                 Name = "A união faz a força!",
                 Image = "http://localhost:5139/media/assets/achievements/ach_13.png",
                 Description = "Complete 5 temas jogando em grupo.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -220,6 +381,7 @@ public static class DbSeeder
                 Name = "Legião do saber",
                 Image = "http://localhost:5139/media/assets/achievements/ach_14.png",
                 Description = "Complete 10 temas jogando em grupo.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -228,6 +390,7 @@ public static class DbSeeder
                 Name = "Reis da História",
                 Image = "http://localhost:5139/media/assets/achievements/ach_15.png",
                 Description = "Complete 20 temas jogando em grupo.",
+                Language = "pt-br",
                 CreatedAt = now
             },
             new Achievement
@@ -236,8 +399,585 @@ public static class DbSeeder
                 Name = "Ancioês do Tempo",
                 Image = "http://localhost:5139/media/assets/achievements/ach_16.png",
                 Description = "Complete 50 temas jogando em grupo.",
+                Language = "pt-br",
                 CreatedAt = now
-            }
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Primeira Vitória",
+                Image = "http://localhost:5139/media/assets/achievements/ach_1.png",
+                Description = "Completa um tema pela primeira vez.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Aprendiz Persistente",
+                Image = "http://localhost:5139/media/assets/achievements/ach_2.png",
+                Description = "Completa 5 temas diferentes.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Mestre do Passado",
+                Image = "http://localhost:5139/media/assets/achievements/ach_3.png",
+                Description = "Completa 10 temas diferentes.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Especialista em História",
+                Image = "http://localhost:5139/media/assets/achievements/ach_4.png",
+                Description = "Completa 20 temas diferentes.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Senhor do Tempo",
+                Image = "http://localhost:5139/media/assets/achievements/ach_5.png",
+                Description = "Completa 50 temas diferentes.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Memória Afiada",
+                Image = "http://localhost:5139/media/assets/achievements/ach_6.png",
+                Description = "Acerta 3 quizzes seguidos.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Mente Magnífica",
+                Image = "http://localhost:5139/media/assets/achievements/ach_7.png",
+                Description = "Acerta 5 quizzes seguidos.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Enciclopédia Humana",
+                Image = "http://localhost:5139/media/assets/achievements/ach_8.png",
+                Description = "Acerta 10 quizzes seguidos.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Sorte de Principiante",
+                Image = "http://localhost:5139/media/assets/achievements/ach_9.png",
+                Description = "Completa 1 tema jogando sozinho.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Guerreiro Solitário",
+                Image = "http://localhost:5139/media/assets/achievements/ach_10.png",
+                Description = "Completa 5 temas jogando sozinho.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Exército de um homem só",
+                Image = "http://localhost:5139/media/assets/achievements/ach_11.png",
+                Description = "Completa 10 temas jogando sozinho.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Juntos venceremos",
+                Image = "http://localhost:5139/media/assets/achievements/ach_12.png",
+                Description = "Completa 1 tema jogando em grupo.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "A união faz a força!",
+                Image = "http://localhost:5139/media/assets/achievements/ach_13.png",
+                Description = "Completa 5 temas jogando em grupo.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Legião do saber",
+                Image = "http://localhost:5139/media/assets/achievements/ach_14.png",
+                Description = "Completa 10 temas jogando em grupo.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Reis da História",
+                Image = "http://localhost:5139/media/assets/achievements/ach_15.png",
+                Description = "Completa 20 temas jogando em grupo.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Ancioês do Tempo",
+                Image = "http://localhost:5139/media/assets/achievements/ach_16.png",
+                Description = "Completa 50 temas jogando em grupo.",
+                Language = "pt-pt",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Primera Victoria",
+                Image = "http://localhost:5139/media/assets/achievements/ach_1.png",
+                Description = "Completa un tema por primera vez.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Aprendiz Persistente",
+                Image = "http://localhost:5139/media/assets/achievements/ach_2.png",
+                Description = "Completa 5 temas diferentes.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Maestro del Pasado",
+                Image = "http://localhost:5139/media/assets/achievements/ach_3.png",
+                Description = "Completa 10 temas diferentes.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Experto en Historia",
+                Image = "http://localhost:5139/media/assets/achievements/ach_4.png",
+                Description = "Completa 20 temas diferentes.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Señor del Tiempo",
+                Image = "http://localhost:5139/media/assets/achievements/ach_5.png",
+                Description = "Completa 50 temas diferentes.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Memoria Afilada",
+                Image = "http://localhost:5139/media/assets/achievements/ach_6.png",
+                Description = "Acierta 3 cuestionarios seguidos.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Mente Magnífica",
+                Image = "http://localhost:5139/media/assets/achievements/ach_7.png",
+                Description = "Acierta 5 cuestionarios seguidos.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Enciclopedia Humana",
+                Image = "http://localhost:5139/media/assets/achievements/ach_8.png",
+                Description = "Acierta 10 cuestionarios seguidos.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Suerte de Principiante",
+                Image = "http://localhost:5139/media/assets/achievements/ach_9.png",
+                Description = "Completa 1 tema jugando solo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Guerrero Solitario",
+                Image = "http://localhost:5139/media/assets/achievements/ach_10.png",
+                Description = "Completa 5 temas jugando solo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Un Ejército de Un Solo Hombre",
+                Image = "http://localhost:5139/media/assets/achievements/ach_11.png",
+                Description = "Completa 10 temas jugando solo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Juntos Venceremos",
+                Image = "http://localhost:5139/media/assets/achievements/ach_12.png",
+                Description = "Completa 1 tema jugando en grupo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "La Unión Hace la Fuerza",
+                Image = "http://localhost:5139/media/assets/achievements/ach_13.png",
+                Description = "Completa 5 temas jugando en grupo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Legión del Saber",
+                Image = "http://localhost:5139/media/assets/achievements/ach_14.png",
+                Description = "Completa 10 temas jugando en grupo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Reyes de la Historia",
+                Image = "http://localhost:5139/media/assets/achievements/ach_15.png",
+                Description = "Completa 20 temas jugando en grupo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Ancianos del Tiempo",
+                Image = "http://localhost:5139/media/assets/achievements/ach_16.png",
+                Description = "Completa 50 temas jugando en grupo.",
+                Language = "es",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "First Victory",
+                Image = "http://localhost:5139/media/assets/achievements/ach_1.png",
+                Description = "Complete a topic for the first time.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Persistent Apprentice",
+                Image = "http://localhost:5139/media/assets/achievements/ach_2.png",
+                Description = "Complete 5 different topics.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Master of the Past",
+                Image = "http://localhost:5139/media/assets/achievements/ach_3.png",
+                Description = "Complete 10 different topics.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "History Expert",
+                Image = "http://localhost:5139/media/assets/achievements/ach_4.png",
+                Description = "Complete 20 different topics.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Lord of Time",
+                Image = "http://localhost:5139/media/assets/achievements/ach_5.png",
+                Description = "Complete 50 different topics.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Sharp Memory",
+                Image = "http://localhost:5139/media/assets/achievements/ach_6.png",
+                Description = "Get 3 quizzes right in a row.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Magnificent Mind",
+                Image = "http://localhost:5139/media/assets/achievements/ach_7.png",
+                Description = "Get 5 quizzes right in a row.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Human Encyclopedia",
+                Image = "http://localhost:5139/media/assets/achievements/ach_8.png",
+                Description = "Get 10 quizzes right in a row.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Beginner’s Luck",
+                Image = "http://localhost:5139/media/assets/achievements/ach_9.png",
+                Description = "Complete 1 topic playing solo.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Lone Warrior",
+                Image = "http://localhost:5139/media/assets/achievements/ach_10.png",
+                Description = "Complete 5 topics playing solo.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "One-Man Army",
+                Image = "http://localhost:5139/media/assets/achievements/ach_11.png",
+                Description = "Complete 10 topics playing solo.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Together We Will Win",
+                Image = "http://localhost:5139/media/assets/achievements/ach_12.png",
+                Description = "Complete 1 topic playing in a group.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Strength in Unity",
+                Image = "http://localhost:5139/media/assets/achievements/ach_13.png",
+                Description = "Complete 5 topics playing in a group.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Legion of Knowledge",
+                Image = "http://localhost:5139/media/assets/achievements/ach_14.png",
+                Description = "Complete 10 topics playing in a group.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Kings of History",
+                Image = "http://localhost:5139/media/assets/achievements/ach_15.png",
+                Description = "Complete 20 topics playing in a group.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Elders of Time",
+                Image = "http://localhost:5139/media/assets/achievements/ach_16.png",
+                Description = "Complete 50 topics playing in a group.",
+                Language = "en",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Première Victoire",
+                Image = "http://localhost:5139/media/assets/achievements/ach_1.png",
+                Description = "Complétez un thème pour la première fois.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apprenti Persévérant",
+                Image = "http://localhost:5139/media/assets/achievements/ach_2.png",
+                Description = "Complétez 5 thèmes différents.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Maître du Passé",
+                Image = "http://localhost:5139/media/assets/achievements/ach_3.png",
+                Description = "Complétez 10 thèmes différents.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Expert en Histoire",
+                Image = "http://localhost:5139/media/assets/achievements/ach_4.png",
+                Description = "Complétez 20 thèmes différents.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Seigneur du Temps",
+                Image = "http://localhost:5139/media/assets/achievements/ach_5.png",
+                Description = "Complétez 50 thèmes différents.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Mémoire Affûtée",
+                Image = "http://localhost:5139/media/assets/achievements/ach_6.png",
+                Description = "Réussissez 3 quiz consécutifs.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Esprit Magnifique",
+                Image = "http://localhost:5139/media/assets/achievements/ach_7.png",
+                Description = "Réussissez 5 quiz consécutifs.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Encyclopédie Humaine",
+                Image = "http://localhost:5139/media/assets/achievements/ach_8.png",
+                Description = "Réussissez 10 quiz consécutifs.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Chance du Débutant",
+                Image = "http://localhost:5139/media/assets/achievements/ach_9.png",
+                Description = "Complétez 1 thème en jouant seul.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Guerrier Solitaire",
+                Image = "http://localhost:5139/media/assets/achievements/ach_10.png",
+                Description = "Complétez 5 thèmes en jouant seul.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Armée d’un Seul Homme",
+                Image = "http://localhost:5139/media/assets/achievements/ach_11.png",
+                Description = "Complétez 10 thèmes en jouant seul.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Ensemble, Nous Vaincrons",
+                Image = "http://localhost:5139/media/assets/achievements/ach_12.png",
+                Description = "Complétez 1 thème en jouant en groupe.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "L’Union Fait la Force",
+                Image = "http://localhost:5139/media/assets/achievements/ach_13.png",
+                Description = "Complétez 5 thèmes en jouant en groupe.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Légion du Savoir",
+                Image = "http://localhost:5139/media/assets/achievements/ach_14.png",
+                Description = "Complétez 10 thèmes en jouant en groupe.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Rois de l’Histoire",
+                Image = "http://localhost:5139/media/assets/achievements/ach_15.png",
+                Description = "Complétez 20 thèmes en jouant en groupe.",
+                Language = "fr",
+                CreatedAt = now
+            },
+            new Achievement
+            {
+                Id = Guid.NewGuid(),
+                Name = "Anciens du Temps",
+                Image = "http://localhost:5139/media/assets/achievements/ach_16.png",
+                Description = "Complétez 50 thèmes en jouant en groupe.",
+                Language = "fr",
+                CreatedAt = now
+            },
         };
 
         db.Achievements.AddRange(list);
