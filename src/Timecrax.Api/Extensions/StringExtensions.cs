@@ -22,7 +22,7 @@ public static partial class StringExtensions
 
     /// <summary>
     /// Validates password complexity requirements:
-    /// - Minimum 12 characters
+    /// - Minimum 8 characters
     /// - At least one uppercase letter
     /// - At least one lowercase letter
     /// - At least one digit
@@ -32,7 +32,7 @@ public static partial class StringExtensions
         if (string.IsNullOrEmpty(password))
             return new PasswordValidationResult(false, "PASSWORD_REQUIRED");
 
-        if (password.Length < 12)
+        if (password.Length < 8)
             return new PasswordValidationResult(false, "PASSWORD_TOO_SHORT");
 
         if (!password.Any(char.IsUpper))
