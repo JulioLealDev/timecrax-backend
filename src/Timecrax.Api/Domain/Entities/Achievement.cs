@@ -7,6 +7,7 @@ public class Achievement
     public string Name { get; set; } = default!;
     public string? Image { get; set; }
     public string? Description { get; set; }
+    public string Language { get; set; } = default!;  // PK: "en", "pt-BR", "fr", "es"
 
     public DateTimeOffset CreatedAt { get; set; }
 

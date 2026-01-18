@@ -127,10 +127,15 @@ public class AppDbContext : DbContext
             b.Property(x => x.CreatedAt)
                 .IsRequired();
 
-            b.HasIndex(x => x.Name)
+            b.Property(x => x.Language)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            // Índices compostos com Language para suportar múltiplos idiomas
+            b.HasIndex(x => new { x.Name, x.Language })
                 .IsUnique();
 
-            b.HasIndex(x => x.MinScore)
+            b.HasIndex(x => new { x.MinScore, x.Language })
                 .IsUnique();
         });
 
@@ -149,7 +154,12 @@ public class AppDbContext : DbContext
             b.Property(x => x.CreatedAt)
                 .IsRequired();
 
-            b.HasIndex(x => x.Name)
+            b.Property(x => x.Language)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            // Índice composto com Language para suportar múltiplos idiomas
+            b.HasIndex(x => new { x.Name, x.Language })
                 .IsUnique();
         });
 
