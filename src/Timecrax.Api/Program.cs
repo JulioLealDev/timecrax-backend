@@ -49,7 +49,7 @@ builder.Services.AddHostedService<DbSeedHostedService>();
 builder.Services.AddScoped<StorageImageService>();
 
 
-var allowedOrigins = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+var allowedOrigins = ResolveEnvVars(builder.Configuration["FrontendUrl"] ?? "http://localhost:5173");
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("web", p =>
