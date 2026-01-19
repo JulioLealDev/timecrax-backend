@@ -119,6 +119,7 @@ static string ResolveEnvVars(string value)
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddSingleton<RateLimitService>();
+builder.Services.AddSingleton<CloudinaryService>();
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
 
