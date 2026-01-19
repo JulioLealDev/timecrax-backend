@@ -13,9 +13,15 @@ public sealed class CloudinaryService
     {
         _logger = logger;
 
-        var cloudName = ResolveEnvVar(config["Cloudinary:CloudName"]);
-        var apiKey = ResolveEnvVar(config["Cloudinary:ApiKey"]);
-        var apiSecret = ResolveEnvVar(config["Cloudinary:ApiSecret"]);
+        // Tenta ler de várias formas para maior compatibilidade
+        var cloudName = GetConfigValue(config, "Cloudinary:CloudName", "CLOUDINARY_CLOUD_NAME", "Cloudinary__CloudName");
+        var apiKey = GetConfigValue(config, "Cloudinary:ApiKey", "CLOUDINARY_API_KEY", "Cloudinary__ApiKey");
+        var apiSecret = GetConfigValue(config, "Cloudinary:ApiSecret", "CLOUDINARY_API_SECRET", "Cloudinary__ApiSecret");
+
+        _logger.LogInformation("Cloudinary config check - CloudName: {HasCloudName}, ApiKey: {HasApiKey}, ApiSecret: {HasApiSecret}",
+            !string.IsNullOrWhiteSpace(cloudName),
+            !string.IsNullOrWhiteSpace(apiKey),
+            !string.IsNullOrWhiteSpace(apiSecret));
 
         // Se todas as credenciais estão configuradas, habilita o Cloudinary
         if (!string.IsNullOrWhiteSpace(cloudName) &&
@@ -26,24 +32,42 @@ public sealed class CloudinaryService
             _cloudinary = new Cloudinary(account);
             _cloudinary.Api.Secure = true;
             _isEnabled = true;
-            _logger.LogInformation("Cloudinary enabled with cloud name: {CloudName}", cloudName);
+            _logger.LogInformation("Cloudinary ENABLED with cloud name: {CloudName}", cloudName);
         }
         else
         {
             _isEnabled = false;
-            _logger.LogWarning("Cloudinary not configured - falling back to local storage");
+            _logger.LogWarning("Cloudinary NOT configured - falling back to local storage. Check environment variables.");
         }
     }
 
-    private static string? ResolveEnvVar(string? value)
+    private static string? GetConfigValue(IConfiguration config, string configKey, params string[] envVarNames)
     {
-        if (string.IsNullOrWhiteSpace(value)) return value;
+        // Primeiro tenta da configuração
+        var value = config[configKey];
 
-        return System.Text.RegularExpressions.Regex.Replace(value, @"\$\{(\w+)\}", match =>
+        // Se veio com placeholder ${...}, resolve
+        if (!string.IsNullOrWhiteSpace(value) && value.Contains("${"))
         {
-            var envVarName = match.Groups[1].Value;
-            return Environment.GetEnvironmentVariable(envVarName) ?? "";
-        });
+            value = System.Text.RegularExpressions.Regex.Replace(value, @"\$\{(\w+)\}", match =>
+            {
+                var envVarName = match.Groups[1].Value;
+                return Environment.GetEnvironmentVariable(envVarName) ?? "";
+            });
+        }
+
+        // Se ainda está vazio, tenta diretamente das variáveis de ambiente
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            foreach (var envVar in envVarNames)
+            {
+                value = Environment.GetEnvironmentVariable(envVar);
+                if (!string.IsNullOrWhiteSpace(value))
+                    break;
+            }
+        }
+
+        return value;
     }
 
     public bool IsEnabled => _isEnabled;
