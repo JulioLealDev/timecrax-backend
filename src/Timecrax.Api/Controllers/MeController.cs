@@ -18,12 +18,14 @@ public class MeController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _env;
     private readonly IConfiguration _config;
+    private readonly StorageImageService _storage;
 
-    public MeController(AppDbContext db, IWebHostEnvironment env, IConfiguration config)
+    public MeController(AppDbContext db, IWebHostEnvironment env, IConfiguration config, StorageImageService storage)
     {
         _db = db;
         _env = env;
         _config = config;
+        _storage = storage;
     }
 
     private string ToAbsoluteUrl(string? path)
@@ -264,39 +266,15 @@ public class MeController : ControllerBase
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null) return Unauthorized();
 
-        var storageRoot = _config["Storage:RootPath"];
-        var publicBase = (_config["Storage:PublicBasePath"] ?? "/media").TrimEnd('/');
-
-        if (string.IsNullOrWhiteSpace(storageRoot))
-            return StatusCode(500, new { error = "Storage RootPath não configurado." });
-
-        var uploadsDir = Path.Combine(storageRoot, "profile");
-        Directory.CreateDirectory(uploadsDir);
-
-        var fileName = $"user_{user.Id}.webp";
-        var filePath = Path.Combine(uploadsDir, fileName);
-
-        SixLabors.ImageSharp.Image img;
+        string pictureUrl;
         try
         {
-            img = Image.Load(file.OpenReadStream());
+            pictureUrl = await _storage.SaveProfilePictureAsync(userId, file, ct);
         }
-        catch
+        catch (InvalidOperationException)
         {
             return BadRequest(ErrorResponse.Single(ErrorCodes.InvalidImage));
         }
-
-        using (img)
-        {
-            if (img.Width < 128 || img.Height < 128)
-                return BadRequest(ErrorResponse.Single(ErrorCodes.ImageTooSmall));
-
-            await using var fs = System.IO.File.Create(filePath);
-            img.SaveAsWebp(fs, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 75 });
-        }
-
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        var pictureUrl = $"{baseUrl}{publicBase}/profile/{fileName}";
 
         user.Picture = pictureUrl;
         user.UpdatedAt = DateTimeOffset.UtcNow;
