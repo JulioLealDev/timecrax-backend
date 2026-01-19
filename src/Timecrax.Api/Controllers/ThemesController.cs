@@ -25,6 +25,7 @@ public class ThemesController : ControllerBase
         [FromBody] ThemeDto dto,
         [FromServices] AppDbContext db,
         [FromServices] IConfiguration config,
+        [FromServices] StorageImageService storage,
         CancellationToken ct)
     {
         var userId = User.GetUserId();
@@ -141,7 +142,7 @@ public class ThemesController : ControllerBase
         string coverUrl;
         try
         {
-            coverUrl = await SaveThemeCoverFromBase64Async(dto.Image!, config, themeId, ct);
+            coverUrl = await storage.SaveThemeCoverFromDataUrlAsync(themeId, dto.Image!, ct);
         }
         catch (InvalidOperationException ex)
         {
@@ -204,60 +205,6 @@ public class ThemesController : ControllerBase
         return map;
     }
 
-
-    private static async Task<string> SaveThemeCoverFromBase64Async(
-        string base64,
-        IConfiguration config,
-        Guid themeId,
-        CancellationToken ct)
-    {
-        var root = config["Storage:RootPath"]?.Trim();
-        var publicBase = (config["Storage:PublicBasePath"] ?? "").TrimEnd('/');
-        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5139").TrimEnd('/');
-
-        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(publicBase))
-            throw new InvalidOperationException("Storage não configurado (Storage:RootPath / Storage:PublicBasePath).");
-
-        // base64 pode vir com prefixo: data:image/...;base64,
-        if (!base64.TrimStart().StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Theme.Image deve ser dataUrl (data:image/...;base64,...)");
-
-        var comma = base64.IndexOf(',');
-        var raw = comma >= 0 ? base64[(comma + 1)..] : base64;
-
-        byte[] bytes;
-        try
-        {
-            bytes = Convert.FromBase64String(raw);
-        }
-        catch
-        {
-            throw new InvalidOperationException("Imagem (base64) inválida.");
-        }
-
-        var dir = Path.Combine(root, "themes", themeId.ToString());
-        Directory.CreateDirectory(dir);
-
-        var fileName = $"cover.webp";
-        var path = Path.Combine(dir, fileName);
-
-        // Carrega e salva como webp (padroniza)
-        using var img = SixLabors.ImageSharp.Image.Load(bytes);
-
-        // opcional: valida dimensões mínimas
-        if (img.Width < 256 || img.Height < 256)
-            throw new InvalidOperationException("Imagem do tema muito pequena.");
-
-        using var fs = System.IO.File.Create(path);
-
-        img.SaveAsWebp(fs, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder
-        {
-            Quality = 85
-        });
-
-
-        return $"{baseUrl}{publicBase}/themes/{themeId}/{fileName}";
-    }
 
     // PUT /themes/{id}
     [HttpPut("{id:guid}")]

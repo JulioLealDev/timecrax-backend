@@ -2,14 +2,11 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Webp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using Timecrax.Api.Data;
 using Timecrax.Api.Domain.Entities;
 using Timecrax.Api.Dtos.ThemeAssets;
 using Timecrax.Api.Extensions;
+using Timecrax.Api.Services;
 
 namespace Timecrax.Api.Controllers;
 
@@ -21,12 +18,14 @@ public class ThemeAssetsController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly ILogger<ThemeAssetsController> _logger;
+    private readonly StorageImageService _storage;
 
-    public ThemeAssetsController(AppDbContext db, IConfiguration config, ILogger<ThemeAssetsController> logger)
+    public ThemeAssetsController(AppDbContext db, IConfiguration config, ILogger<ThemeAssetsController> logger, StorageImageService storage)
     {
         _db = db;
         _config = config;
         _logger = logger;
+        _storage = storage;
     }
 
     [HttpPost("sessions/{sessionId:guid}/upload")]
@@ -60,12 +59,6 @@ public class ThemeAssetsController : ControllerBase
         if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             return BadRequest("Apenas imagens são permitidas.");
 
-        var root = (_config["Storage:RootPath"] ?? "").Trim();
-        var publicBase = (_config["Storage:PublicBasePath"] ?? "").TrimEnd('/');
-
-        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(publicBase))
-            return StatusCode(500, "Storage não configurado (Storage:RootPath / Storage:PublicBasePath).");
-
         var userId = User.GetUserId();
 
         var session = await _db.ThemeUploadSessions
@@ -79,58 +72,30 @@ public class ThemeAssetsController : ControllerBase
         // Se sessão tem ThemeId (modo edit), usa ele. Caso contrário usa SessionId (modo create/staging)
         var themeId = session.ThemeId ?? sessionId;
 
-        // monta o caminho final determinístico (arquivo .webp)
-        var relative = GetRelativePathForSlotKey(slotKey); // ex: cards/0/main.webp
-        var themeDir = Path.Combine(root, "themes", themeId.ToString());
-        var fullPath = Path.Combine(themeDir, relative);
+        // monta o caminho relativo determinístico (arquivo .webp)
+        var relativePath = GetRelativePathForSlotKey(slotKey); // ex: cards/0/main.webp
 
-        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
-
-        // carrega e converte -> webp (padronizado)
-        Image img;
+        string url;
         try
         {
-            img = await Image.LoadAsync(file.OpenReadStream(), ct);
+            url = await _storage.SaveCardImageFromFileAsync(themeId, relativePath, file, ct);
         }
-        catch
+        catch (InvalidOperationException ex)
         {
-            return BadRequest("Imagem inválida ou formato não suportado.");
+            return BadRequest(ex.Message);
         }
-
-        using (img)
+        catch (Exception ex)
         {
-            // Validação de tamanho mínimo
-            const int minDimension = 128;
-            if (img.Width < minDimension || img.Height < minDimension)
-            {
-                return BadRequest($"Imagem muito pequena. Tamanho mínimo: {minDimension}x{minDimension} pixels.");
-            }
-
-            // Otimização agressiva: redimensiona para tamanhos menores e qualidade menor
-            int maxDimension = 1200; // Reduzido de 1920 para 1200
-            if (img.Width > maxDimension || img.Height > maxDimension)
-            {
-                var ratio = Math.Min((double)maxDimension / img.Width, (double)maxDimension / img.Height);
-                var newWidth = (int)(img.Width * ratio);
-                var newHeight = (int)(img.Height * ratio);
-                img.Mutate(x => x.Resize(newWidth, newHeight, KnownResamplers.Box)); // Box é mais rápido
-            }
-
-            await using (var fs = System.IO.File.Create(fullPath))
-            {
-                await img.SaveAsWebpAsync(fs, new WebpEncoder
-                {
-                    Quality = 75,
-                    Method = WebpEncodingMethod.Default
-                }, ct);
-            }
+            _logger.LogError(ex, "Erro ao salvar imagem para tema {ThemeId}", themeId);
+            return StatusCode(500, "Erro ao processar imagem.");
         }
-
-        var url = $"{publicBase}/themes/{themeId}/{relative.Replace('\\', '/')}";
 
         // upsert por (SessionId, SlotKey)
         var asset = await _db.ThemeUploadAssets
             .FirstOrDefaultAsync(a => a.SessionId == sessionId && a.SlotKey == slotKey, ct);
+
+        var publicBase = (_config["Storage:PublicBasePath"] ?? "").TrimEnd('/');
+        var root = (_config["Storage:RootPath"] ?? "").Trim();
 
         if (asset is null)
         {
@@ -146,8 +111,9 @@ public class ThemeAssetsController : ControllerBase
         }
         else
         {
-            // remove arquivo anterior (se URL mudou)
-            TryDeleteOldAssetFile(asset.Url, publicBase, root);
+            // remove arquivo anterior se era local (Cloudinary sobrescreve automaticamente)
+            if (!string.IsNullOrWhiteSpace(root))
+                TryDeleteOldAssetFile(asset.Url, publicBase, root);
             asset.Url = url;
         }
 
