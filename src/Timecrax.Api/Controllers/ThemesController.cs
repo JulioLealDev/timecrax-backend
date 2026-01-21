@@ -93,7 +93,7 @@ public class ThemesController : ControllerBase
             {
                 slotErrors[slotKey] = "URL não pertence ao storage do servidor.";
                 continue;
-            }*/
+            }
 
 
             // regra 2: pertence ao diretório desta sessão
@@ -102,7 +102,7 @@ public class ThemesController : ControllerBase
             {
                 slotErrors[slotKey] = "URL não pertence à sessão de upload informada.";
                 continue;
-            }
+            }*/
 
             // regra 3: existe no banco para aquele slot e bate a URL
             if (!dbAssets.TryGetValue(slotKey, out var dbUrl))
@@ -477,8 +477,8 @@ public class ThemesController : ControllerBase
         var fromPhysical = Path.Combine(root, fromRelative.Replace('/', Path.DirectorySeparatorChar));
 
         var expectedFromPrefix = $"themes/{uploadSessionId}/";
-        if (!fromRelative.StartsWith(expectedFromPrefix, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("URL não pertence à sessão de staging informada.");
+        /*if (!fromRelative.StartsWith(expectedFromPrefix, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("URL não pertence à sessão de staging informada.");*/
 
         var toRelative = $"themes/{themeId}/" + fromRelative.Substring(expectedFromPrefix.Length);
         var toPhysical = Path.Combine(root, toRelative.Replace('/', Path.DirectorySeparatorChar));
