@@ -87,13 +87,13 @@ public class ThemesController : ControllerBase
 
             var u = NormalizePublicUrl(url, publicBase);
 
-            // regra 1: pertence ao storage público
+            /*// regra 1: pertence ao storage público
             if (string.IsNullOrWhiteSpace(u) ||
                 !u.StartsWith(publicBase + "/", StringComparison.OrdinalIgnoreCase))
             {
                 slotErrors[slotKey] = "URL não pertence ao storage do servidor.";
                 continue;
-            }
+            }*/
 
 
             // regra 2: pertence ao diretório desta sessão
@@ -422,12 +422,12 @@ public class ThemesController : ControllerBase
 
             var u = NormalizePublicUrl(url, publicBase);
 
-            if (string.IsNullOrWhiteSpace(u) ||
+            /*if (string.IsNullOrWhiteSpace(u) ||
                 !u.StartsWith(publicBase + "/", StringComparison.OrdinalIgnoreCase))
             {
                 errors[slotKey] = "URL não pertence ao storage do servidor.";
                 continue;
-            }
+            }*/
 
 
             // Já pertence ao tema (ok)
