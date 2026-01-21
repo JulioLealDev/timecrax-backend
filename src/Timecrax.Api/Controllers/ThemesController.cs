@@ -87,7 +87,7 @@ public class ThemesController : ControllerBase
 
             var u = NormalizePublicUrl(url, publicBase);
 
-            /*// regra 1: pertence ao storage público
+            // regra 1: pertence ao storage público
             if (string.IsNullOrWhiteSpace(u) ||
                 !u.StartsWith(publicBase + "/", StringComparison.OrdinalIgnoreCase))
             {
@@ -102,7 +102,7 @@ public class ThemesController : ControllerBase
             {
                 slotErrors[slotKey] = "URL não pertence à sessão de upload informada.";
                 continue;
-            }*/
+            }
 
             // regra 3: existe no banco para aquele slot e bate a URL
             if (!dbAssets.TryGetValue(slotKey, out var dbUrl))
@@ -422,12 +422,12 @@ public class ThemesController : ControllerBase
 
             var u = NormalizePublicUrl(url, publicBase);
 
-            /*if (string.IsNullOrWhiteSpace(u) ||
+            if (string.IsNullOrWhiteSpace(u) ||
                 !u.StartsWith(publicBase + "/", StringComparison.OrdinalIgnoreCase))
             {
                 errors[slotKey] = "URL não pertence ao storage do servidor.";
                 continue;
-            }*/
+            }
 
 
             // Já pertence ao tema (ok)
@@ -477,8 +477,8 @@ public class ThemesController : ControllerBase
         var fromPhysical = Path.Combine(root, fromRelative.Replace('/', Path.DirectorySeparatorChar));
 
         var expectedFromPrefix = $"themes/{uploadSessionId}/";
-        /*if (!fromRelative.StartsWith(expectedFromPrefix, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("URL não pertence à sessão de staging informada.");*/
+        if (!fromRelative.StartsWith(expectedFromPrefix, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("URL não pertence à sessão de staging informada.");
 
         var toRelative = $"themes/{themeId}/" + fromRelative.Substring(expectedFromPrefix.Length);
         var toPhysical = Path.Combine(root, toRelative.Replace('/', Path.DirectorySeparatorChar));
