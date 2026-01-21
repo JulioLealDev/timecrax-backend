@@ -65,9 +65,8 @@ public class ThemesController : ControllerBase
         }
 
         // 2) validar URLs do payload vs sessão (SOMENTE links, não a capa base64)
-        var publicBase = (config["Storage:PublicBasePath"] ?? "").TrimEnd('/');
-        if (string.IsNullOrWhiteSpace(publicBase))
-            return StatusCode(500, "Storage:PublicBasePath não configurado.");
+        // Nota: URLs podem ser do storage local (/media/...) ou do Cloudinary (https://res.cloudinary.com/...)
+        var publicBase = (config["Storage:PublicBasePath"] ?? "/media").TrimEnd('/');
 
         var dbAssets = await db.ThemeUploadAssets
             .Where(a => a.SessionId == sessionId)
@@ -85,39 +84,23 @@ public class ThemesController : ControllerBase
                 continue;
             }
 
-            var u = NormalizePublicUrl(url, publicBase);
-
-            // regra 1: pertence ao storage público
-            if (string.IsNullOrWhiteSpace(u) ||
-                !u.StartsWith(publicBase + "/", StringComparison.OrdinalIgnoreCase))
-            {
-                slotErrors[slotKey] = "URL não pertence ao storage do servidor.";
-                continue;
-            }
-
-
-            // regra 2: pertence ao diretório desta sessão
-            var expectedPrefix = $"{publicBase}/themes/{sessionId}/";
-            if (!u.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                slotErrors[slotKey] = "URL não pertence à sessão de upload informada.";
-                continue;
-            }
-
-            // regra 3: existe no banco para aquele slot e bate a URL
+            // Verificar se existe no banco para aquele slot
             if (!dbAssets.TryGetValue(slotKey, out var dbUrl))
             {
-                slotErrors[slotKey] = "SlotKey não encontrado na sessão.";
+                slotErrors[slotKey] = "SlotKey não encontrado na sessão. Faça upload da imagem primeiro.";
                 continue;
             }
 
-            var dbNorm = NormalizePublicUrl(dbUrl, publicBase);
-            if (!string.Equals(dbNorm, u, StringComparison.OrdinalIgnoreCase))
+            // Normalizar ambas as URLs para comparação
+            var normalizedPayloadUrl = NormalizeUrlForComparison(url);
+            var normalizedDbUrl = NormalizeUrlForComparison(dbUrl);
+
+            // Verificar se a URL enviada corresponde à URL salva no banco
+            if (!string.Equals(normalizedDbUrl, normalizedPayloadUrl, StringComparison.OrdinalIgnoreCase))
             {
                 slotErrors[slotKey] = "URL não corresponde ao arquivo enviado para este slot.";
                 continue;
             }
-
         }
 
         if (slotErrors.Count > 0)
@@ -420,6 +403,28 @@ public class ThemesController : ControllerBase
                 continue;
             }
 
+            var normalizedUrl = NormalizeUrlForComparison(url);
+
+            // Se é URL absoluta (Cloudinary), verificar se existe no banco
+            if (IsAbsoluteUrl(normalizedUrl))
+            {
+                // Verificar se existe no banco da sessão
+                if (sessionAssets.TryGetValue(slotKey, out var dbUrl))
+                {
+                    var normalizedDbUrl = NormalizeUrlForComparison(dbUrl);
+                    if (string.Equals(normalizedDbUrl, normalizedUrl, StringComparison.OrdinalIgnoreCase))
+                    {
+                        slotsFromSession.Add(slotKey);
+                        continue;
+                    }
+                }
+
+                // Para Cloudinary, URLs absolutas que não vieram da sessão são consideradas válidas
+                // (podem ser URLs já salvas no tema anteriormente)
+                continue;
+            }
+
+            // URL relativa (storage local)
             var u = NormalizePublicUrl(url, publicBase);
 
             if (string.IsNullOrWhiteSpace(u) ||
@@ -428,7 +433,6 @@ public class ThemesController : ControllerBase
                 errors[slotKey] = "URL não pertence ao storage do servidor.";
                 continue;
             }
-
 
             // Já pertence ao tema (ok)
             if (u.StartsWith(themePrefix, StringComparison.OrdinalIgnoreCase))
@@ -451,7 +455,6 @@ public class ThemesController : ControllerBase
                     continue;
                 }
 
-
                 slotsFromSession.Add(slotKey);
                 continue;
             }
@@ -460,6 +463,13 @@ public class ThemesController : ControllerBase
         }
 
         return (errors, slotsFromSession);
+    }
+
+    private static bool IsAbsoluteUrl(string url)
+    {
+        return !string.IsNullOrWhiteSpace(url) &&
+               (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                url.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string PromoteOneAssetFromSessionToTheme(
@@ -853,6 +863,32 @@ public class ThemesController : ControllerBase
             // Ajuste aqui se você tiver mais roots públicas.
             if (u.StartsWith("/themes/", StringComparison.OrdinalIgnoreCase))
                 u = publicBase + u;
+        }
+
+        return u;
+    }
+
+    /// <summary>
+    /// Normaliza URL para comparação, suportando tanto storage local quanto Cloudinary.
+    /// Remove trailing slashes e normaliza o formato.
+    /// </summary>
+    private static string NormalizeUrlForComparison(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+
+        var u = url.Trim().TrimEnd('/');
+
+        // Se for URL absoluta, mantém como está (Cloudinary retorna URLs absolutas)
+        if (u.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            u.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return u;
+        }
+
+        // Se for URL relativa, garante que começa com /
+        if (!u.StartsWith("/"))
+        {
+            u = "/" + u;
         }
 
         return u;
