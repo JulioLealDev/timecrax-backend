@@ -724,7 +724,7 @@ public class ThemesController : ControllerBase
     }
 
     // GET /themes/{id}/download
-    // Endpoint para o jogo Unity baixar o tema completo com todas as cartas
+    // Endpoint para o jogo Unity baixar o tema completo com todas as cartas e quizzes
     [HttpGet("{id:guid}/download")]
     [Authorize]
     public async Task<IActionResult> DownloadTheme(
@@ -735,6 +735,13 @@ public class ThemesController : ControllerBase
         var theme = await db.Themes
             .AsNoTracking()
             .Include(t => t.EventCards)
+                .ThenInclude(c => c.ImageQuiz)
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.TextQuiz)
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.TrueOrFalseQuiz)
+            .Include(t => t.EventCards)
+                .ThenInclude(c => c.CorrelationQuiz)
             .Include(t => t.CreatorUser)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
 
@@ -744,7 +751,7 @@ public class ThemesController : ControllerBase
         if (!theme.ReadyToPlay)
             return BadRequest(new { code = "THEME_NOT_READY", message = "Este tema ainda não está pronto para jogar" });
 
-        // Ordena as cartas por OrderIndex
+        // Ordena as cartas por OrderIndex e inclui quizzes
         var cards = theme.EventCards
             .OrderBy(c => c.OrderIndex)
             .Select(c => new
@@ -754,7 +761,49 @@ public class ThemesController : ControllerBase
                 year = c.Year,
                 era = c.Era.ToString(),
                 title = c.Title,
-                imageUrl = c.Image
+                imageUrl = c.Image,
+                // Quiz de Imagens
+                imageQuiz = c.ImageQuiz != null ? new
+                {
+                    question = c.ImageQuiz.Question,
+                    options = new[]
+                    {
+                        new { text = (string?)null, imageUrl = c.ImageQuiz.Image1 },
+                        new { text = (string?)null, imageUrl = c.ImageQuiz.Image2 },
+                        new { text = (string?)null, imageUrl = c.ImageQuiz.Image3 },
+                        new { text = (string?)null, imageUrl = c.ImageQuiz.Image4 }
+                    },
+                    correctIndex = (int)c.ImageQuiz.CorrectImageIndex
+                } : null,
+                // Quiz de Texto
+                textQuiz = c.TextQuiz != null ? new
+                {
+                    question = c.TextQuiz.Question,
+                    options = new[]
+                    {
+                        new { text = c.TextQuiz.Text1, imageUrl = (string?)null },
+                        new { text = c.TextQuiz.Text2, imageUrl = (string?)null },
+                        new { text = c.TextQuiz.Text3, imageUrl = (string?)null },
+                        new { text = c.TextQuiz.Text4, imageUrl = (string?)null }
+                    },
+                    correctIndex = (int)c.TextQuiz.CorrectTextIndex
+                } : null,
+                // Quiz Verdadeiro ou Falso
+                trueFalseQuiz = c.TrueOrFalseQuiz != null ? new
+                {
+                    statement = c.TrueOrFalseQuiz.Text,
+                    answer = c.TrueOrFalseQuiz.IsTrue
+                } : null,
+                // Quiz de Correlação
+                correlationQuiz = c.CorrelationQuiz != null ? new
+                {
+                    items = new[]
+                    {
+                        new { imageUrl = c.CorrelationQuiz.Image1, text = c.CorrelationQuiz.Text1 },
+                        new { imageUrl = c.CorrelationQuiz.Image2, text = c.CorrelationQuiz.Text2 },
+                        new { imageUrl = c.CorrelationQuiz.Image3, text = c.CorrelationQuiz.Text3 }
+                    }
+                } : null
             })
             .ToList();
 
