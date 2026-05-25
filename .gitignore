@@ -23,6 +23,10 @@ appsettings.*.json
 ## Environment variables
 .env
 
+## Claude
+CLAUDE.md
+.claude/
+
 ## Logs
 *.log
 
