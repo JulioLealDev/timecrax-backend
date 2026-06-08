@@ -10,6 +10,7 @@ using Timecrax.Api.Middlewares;
 using Timecrax.Api.Data.Seed;
 using Timecrax.Api.Filters;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.HttpOverrides;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -125,6 +126,12 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
 var app = builder.Build();
 
+// Trust X-Forwarded-* headers from the reverse proxy
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 // Apply pending migrations automatically
 using (var scope = app.Services.CreateScope())
 {
@@ -133,6 +140,16 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -157,7 +174,6 @@ if (!string.IsNullOrWhiteSpace(storageRoot))
     });
 }
 
-app.UseHttpsRedirection();
 app.UseCors("web");
 
 app.UseAuthentication();

@@ -235,11 +235,11 @@ public class ThemesController : ControllerBase
                 var coverUrl = await storage.SaveThemeCoverFromDataUrlAsync(id, dto.Image, ct);
                 dto = dto with { Image = coverUrl };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest(new
                 {
-                    errors = new Dictionary<string, string> { ["theme.image"] = ex.Message }
+                    errors = new Dictionary<string, string> { ["theme.image"] = "Image processing failed." }
                 });
             }
         }
@@ -321,9 +321,9 @@ public class ThemesController : ControllerBase
                     }
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, $"Falha ao promover assets da sessão: {ex.Message}");
+                return StatusCode(500, new { error = "Asset promotion failed." });
             }
         }
 
@@ -374,9 +374,9 @@ public class ThemesController : ControllerBase
             await db.SaveChangesAsync(ct);
             return NoContent();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "Failed to update theme", details = ex.Message });
+            return StatusCode(500, new { error = "Failed to update theme." });
         }
     }
 

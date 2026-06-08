@@ -8,21 +8,24 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-timecrax}
       POSTGRES_USER: ${DB_USER:-timecrax}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-timecrax_pwd}
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-}
     volumes:
       - timecrax_pgdata:/var/lib/postgresql/data
+    networks:
+      - app
+      - internal
 
   pgadmin:
     image: dpage/pgadmin4:8
     container_name: timecrax_pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: juliocesarlfaria@outlook.com
-      PGADMIN_DEFAULT_PASSWORD: admin_pwd
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
+    networks:
+      - internal
     volumes:
       - timecrax_pgadmin_data:/var/lib/pgadmin
     depends_on:
@@ -37,22 +40,31 @@ services:
     ports:
       - "5139:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-timecrax}
       DB_USER: ${DB_USER:-timecrax}
-      DB_PASSWORD: ${DB_PASSWORD:-timecrax_pwd}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-TimecraxDevSecretKey32CharactersMin!}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     volumes:
-      - D:/timecrax-storage:/data/storage
+      - timecrax_storage:/data/storage
+    networks:
+      - app
     depends_on:
       - db
 
 volumes:
   timecrax_pgdata:
   timecrax_pgadmin_data:
+  timecrax_storage:
+
+networks:
+  app:
+    driver: bridge
+  internal:
+    internal: true
