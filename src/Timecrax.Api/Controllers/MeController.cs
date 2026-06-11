@@ -32,7 +32,9 @@ public class MeController : ControllerBase
     {
         if (string.IsNullOrEmpty(path)) return path ?? "";
         if (path.StartsWith("http://") || path.StartsWith("https://")) return path;
-        return $"{Request.Scheme}://{Request.Host}{path}";
+        var baseUrl = _config["PublicApiBaseUrl"]?.TrimEnd('/')
+            ?? $"{Request.Scheme}://{Request.Host}";
+        return $"{baseUrl}{path}";
     }
 
     // (Opcional) GET /me -> para o app carregar perfil
