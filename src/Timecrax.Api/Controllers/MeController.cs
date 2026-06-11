@@ -32,8 +32,8 @@ public class MeController : ControllerBase
     {
         if (string.IsNullOrEmpty(path)) return path ?? "";
         if (path.StartsWith("http://") || path.StartsWith("https://")) return path;
-        var baseUrl = _config["PublicApiBaseUrl"]?.TrimEnd('/')
-            ?? $"{Request.Scheme}://{Request.Host}";
+        var baseUrl = (Environment.GetEnvironmentVariable("PUBLIC_API_BASE_URL")
+            ?? $"{Request.Scheme}://{Request.Host}").TrimEnd('/');
         return $"{baseUrl}{path}";
     }
 
