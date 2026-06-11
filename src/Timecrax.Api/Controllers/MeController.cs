@@ -113,7 +113,7 @@ public class MeController : ControllerBase
             user.LastName,
             user.Email,
             user.SchoolName,
-            user.Picture,
+            ToAbsoluteUrl(user.Picture),
             user.Score,
             user.CreatedAt,
             user.UpdatedAt,
@@ -282,7 +282,7 @@ public class MeController : ControllerBase
         user.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        return Ok(new { picture = pictureUrl });
+        return Ok(new { picture = ToAbsoluteUrl(pictureUrl) });
     }
 
     // GET /me/ranking
